@@ -11,6 +11,9 @@
 */
 #include "filter.h"
 #include <float.h>
+#include"utils.cpp"
+#include"pthread.h"
+
 
 extern lmfunc fcn;
 
@@ -34,39 +37,6 @@ int qrsolv(int,double*,int,int*,double*,double*,double*,double*,double*);
 static double enorm(int n, double x[]);
 static double dmax1(double a, double b);
 static double dmin1(double a, double b);
-
-//---------for time stat------------
-
-#ifdef WIN32
-typedef DWORD os_TIME1;
-#else
-typedef struct timeval os_TIME;
-#endif
-void os_GetTime1(os_TIME1* time)
-{
-#ifdef WIN32
-    *time = GetTickCount();
-#else
-    struct timezone tz;
-    gettimeofday(time, &tz);
-#endif
-}
-
-int os_TimeDiff1(os_TIME1* time1, os_TIME1* time2)
-{
-#ifdef WIN32
-    return *time1 - *time2;
-#else
-    return (int)((double)time1->tv_sec*1000 + ((double)time1->tv_usec)*1e-3 -
-                 (double)time2->tv_sec*1000 - ((double)time2->tv_usec)*1e-3);
-#endif
-}
-
-#define TIMETRACE(TEXT, CODE) { os_TIME1 t1,t2; os_GetTime1(&t1); CODE; \
-        os_GetTime1(&t2); \
-		printf("%s took %f seconds.\n",TEXT,os_TimeDiff1(&t2,&t1)/1000.0); }
-
-
 
 
 
@@ -1550,7 +1520,44 @@ static double enorm(int n, double x[])
 /************************fdjac2.c*************************/
 
 #define BUG 0
+struct fdjac_para
+{
+	int m,n,n_begin,n_end,*iflag;
+	double *x,*fvec,*fjac,*wa,eps,temp;
 
+};
+//int fdjac_thread(int m,int n,double x[],double fvec[], double fjac[],
+//	int* iflag,double wa[],int n_begin,int n_end,double eps,double temp)
+int fdjac_thread(struct fdjac_para* para)
+{
+	double zero = 0.0;
+	int i,j,ij;
+	//ij = 0;
+	double h;
+	printf("thread %d to %d begin\n",para->n_begin,para->n_end);
+	for( j=para->n_begin; j<para->n_end; j++ )
+	{
+		para->temp = para->x[j];
+		h = para->eps * fabs(para->temp);
+		if(h == zero)
+			h = para->eps;
+		para->x[j] = para->temp + h;
+		fcn(para->m,para->n,para->x,para->wa,para->iflag);
+		if( *(para->iflag) < 0)
+		{
+			pthread_exit(NULL);
+			return 0;
+		}
+		para->x[j] =para->temp;
+		ij=(para->m)*j;
+		for( i=0; i<para->m; i++ )
+		{
+			para->fjac[ij] = (para->wa[i] - para->fvec[i])/h;
+			ij += 1;	/* fjac[i+m*j] */
+		}
+	}
+	pthread_exit(NULL);
+}
 int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 	int ldfjac PT_UNUSED, int *iflag, double epsfcn, double wa[])
 {
@@ -1635,28 +1642,127 @@ int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 	double eps,h,temp;
 	static double zero = 0.0;
 	extern double MACHEP;
-
+	int _cores;
+		
+	int intvl;
+	pthread_t *tid;
+	int ret;
+	int begin,end;
+	struct fdjac_para* paras;
+	void* stat=NULL;
+	double *fjac1,*xold;
 	temp = dmax1(epsfcn,MACHEP);
 	eps = sqrt(temp);
+	
+
 #if BUG
 	printf( "fdjac2\n" );
 #endif
-	ij = 0;
-	for( j=0; j<n; j++ )
+	if(m>100)
 	{
-		temp = x[j];
-		h = eps * fabs(temp);
-		if(h == zero)
-			h = eps;
-		x[j] = temp + h;
-		fcn(m,n,x,wa,iflag);
-		if( *iflag < 0)
-			return 0;
-		x[j] = temp;
-		for( i=0; i<m; i++ )
+		fjac1=(double*)malloc(m*sizeof(double));
+		xold=(double*)malloc(n*sizeof(double));
+		ij = 0;
+		for( j=0; j<n; j++ )
 		{
-			fjac[ij] = (wa[i] - fvec[i])/h;
-			ij += 1;	/* fjac[i+m*j] */
+			temp = x[j];
+			h = eps * fabs(temp);
+			if(h == zero)
+				h = eps;
+			x[j] = temp + h;
+			memcpy(fjac1,wa,m*sizeof(double));
+			memcpy(xold,x,n*sizeof(double));
+			fcn(m,n,x,wa,iflag);
+			for(i=0;i<n;++i)
+			{
+				if(xold[i]!=x[i])
+				{
+					printf("x diff at i=%d, before=%f, after=%f\n",i,xold[i],x[i]);
+				}
+			}
+			if( *iflag < 0)
+				return 0;
+			x[j] = temp;
+			for( i=0; i<m; i++ )
+			{
+				if(fjac1[i]!=wa[i])
+				{
+					printf("wa diff at j=%d i=%d, before=%f, after=%f\n",j,i,fjac1[i],wa[i]);
+				}
+				
+				fjac[ij] = (wa[i] - fvec[i])/h;
+				ij += 1;	/* fjac[i+m*j] */
+			}
+		}
+		free(fjac1);
+		free(xold);
+		printf("trad over");
+
+
+
+		fjac1=(double*)malloc(m*n*sizeof(double));
+		memset(fjac1,0,m*n);
+		_cores=getCPUCount();
+		intvl=n/_cores+1;
+		printf("begin multithread processing %d cores\n",_cores);
+		tid=(pthread_t*)malloc(_cores*sizeof(pthread_t));
+		paras=(struct fdjac_para*)malloc(_cores*sizeof(struct fdjac_para));
+		begin=0;end=intvl;
+		for(i=0;i<_cores;i++)
+		{
+			 paras[i].m=m;
+			 paras[i].n=n;
+
+			 paras[i].n_begin=begin;
+			 paras[i].n_end=end;
+			 paras[i].iflag=iflag;
+	         paras[i].x=x;
+			 paras[i].fvec=fvec;
+			 paras[i].fjac=fjac1;
+			 paras[i].wa=wa;
+			 paras[i].eps=eps;
+			 paras[i].temp=temp;
+			//TIMETRACE("thread:",fdjac_thread(&paras[i]));
+			ret=pthread_create(&(tid[i]),NULL,fdjac_thread,(void*)(&paras[i]));
+			begin+=intvl;
+			end+=intvl;
+			if (end >n) end=n;
+
+		}
+		for(i=0;i<_cores;i++)
+		{
+			pthread_join(tid[i], &stat);
+		}
+		//pmat( m, n, fjac );
+		free(tid);
+		free(paras);
+		printf("dist over\n");
+
+
+
+		pcom( m, n, fjac1,fjac );
+		
+
+	}
+	else
+	{
+		ij = 0;
+		for( j=0; j<n; j++ )
+		{
+			temp = x[j];
+			h = eps * fabs(temp);
+			if(h == zero)
+				h = eps;
+			x[j] = temp + h;
+			fcn(m,n,x,wa,iflag);
+			if( *iflag < 0)
+				return 0;
+			x[j] = temp;
+			for( i=0; i<m; i++ )
+			{
+				fjac[ij] = (wa[i] - fvec[i])/h;
+				ij += 1;	/* fjac[i+m*j] */
+			}
 		}
 	}
 #if BUG
@@ -1667,6 +1773,8 @@ int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 	*/
 	return 0;
 }
+
+
 /************************lmmisc.c*************************/
 
 static double dmax1(double a, double b)
@@ -1702,4 +1810,22 @@ static int PT_UNUSED pmat( int m, int n, double y[] PT_UNUSED)
 	return 0;
 }	
 
+static int PT_UNUSED pcom( int m, int n,double x[] PT_UNUSED, double y[] PT_UNUSED)
+{
+	int i, j, k;
 
+	k = 0;
+	printf("\n begin pcom:\n");
+	for( i=0; i<m; i++ )
+	{
+		for( j=0; j<n; j++ )
+		{
+			if(fabs(x[k]-y[k])>0.000001)
+			printf( "m=%d, n=%d, fvec1(dist)=%.5e, fvec=%.5e\n ", i,j,x[k],y[k] );
+			k += 1;
+		}
+		//printf( "\n" );
+	}
+	printf("\n pcom over\n");
+	return 0;
+}	
