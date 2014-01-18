@@ -1104,6 +1104,7 @@ L40:
 		jp1 = j + 1;
 		if(jp1 < n )
 		{
+			
 			for( k=jp1; k<n; k++ )
 			{
 				sum = zero;
@@ -1522,14 +1523,15 @@ static double enorm(int n, double x[])
 #define BUG 0
 struct fdjac_para
 {
-	int m,n,n_begin,n_end,*iflag;
-	double *x,*fvec,*fjac,*wa,eps,temp;
+	int m,n,n_begin,n_end,*iflag,j;
+	double *x,*fvec,*fjac,*was,eps,temp,*hs;
 
 };
 //int fdjac_thread(int m,int n,double x[],double fvec[], double fjac[],
 //	int* iflag,double wa[],int n_begin,int n_end,double eps,double temp)
 int fdjac_thread(struct fdjac_para* para)
 {
+	
 	double zero = 0.0;
 	int i,j,ij;
 	//ij = 0;
@@ -1537,22 +1539,11 @@ int fdjac_thread(struct fdjac_para* para)
 	printf("thread %d to %d begin\n",para->n_begin,para->n_end);
 	for( j=para->n_begin; j<para->n_end; j++ )
 	{
-		para->temp = para->x[j];
-		h = para->eps * fabs(para->temp);
-		if(h == zero)
-			h = para->eps;
-		para->x[j] = para->temp + h;
-		fcn(para->m,para->n,para->x,para->wa,para->iflag);
-		if( *(para->iflag) < 0)
-		{
-			pthread_exit(NULL);
-			return 0;
-		}
-		para->x[j] =para->temp;
+		h=(para->hs)[j];
 		ij=(para->m)*j;
 		for( i=0; i<para->m; i++ )
 		{
-			para->fjac[ij] = (para->wa[i] - para->fvec[i])/h;
+			para->fjac[ij] = (para->was[ij] - para->fvec[i])/h;
 			ij += 1;	/* fjac[i+m*j] */
 		}
 	}
@@ -1650,7 +1641,7 @@ int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 	int begin,end;
 	struct fdjac_para* paras;
 	void* stat=NULL;
-	double *fjac1,*xold;
+	double *was,*hs,*fjac_dist;
 	temp = dmax1(epsfcn,MACHEP);
 	eps = sqrt(temp);
 	
@@ -1660,88 +1651,114 @@ int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 #endif
 	if(m>100)
 	{
-		fjac1=(double*)malloc(m*sizeof(double));
-		xold=(double*)malloc(n*sizeof(double));
-		ij = 0;
-		for( j=0; j<n; j++ )
-		{
-			temp = x[j];
-			h = eps * fabs(temp);
-			if(h == zero)
-				h = eps;
-			x[j] = temp + h;
-			memcpy(fjac1,wa,m*sizeof(double));
-			memcpy(xold,x,n*sizeof(double));
-			fcn(m,n,x,wa,iflag);
-			for(i=0;i<n;++i)
-			{
-				if(xold[i]!=x[i])
-				{
-					printf("x diff at i=%d, before=%f, after=%f\n",i,xold[i],x[i]);
-				}
-			}
-			if( *iflag < 0)
-				return 0;
-			x[j] = temp;
-			for( i=0; i<m; i++ )
-			{
-				if(fjac1[i]!=wa[i])
-				{
-					printf("wa diff at j=%d i=%d, before=%f, after=%f\n",j,i,fjac1[i],wa[i]);
-				}
-				
-				fjac[ij] = (wa[i] - fvec[i])/h;
-				ij += 1;	/* fjac[i+m*j] */
-			}
-		}
-		free(fjac1);
-		free(xold);
-		printf("trad over");
-
-
-
-		fjac1=(double*)malloc(m*n*sizeof(double));
-		memset(fjac1,0,m*n);
 		_cores=getCPUCount();
 		intvl=n/_cores+1;
 		printf("begin multithread processing %d cores\n",_cores);
 		tid=(pthread_t*)malloc(_cores*sizeof(pthread_t));
 		paras=(struct fdjac_para*)malloc(_cores*sizeof(struct fdjac_para));
+		was=(double*)malloc(m*n*sizeof(double));
+		hs=(double*)malloc(n*sizeof(double));
+		fjac_dist=(double*)malloc(m*n*sizeof(double));
+		memset(fjac_dist,0,m*n*sizeof(double));
+		ij = 0;
+		TIMETRACE("iteration",
+		for( j=0; j<n; j++ )
+		{
+			
+			temp = x[j];
+			h = eps * fabs(temp);
+			if(h == zero)
+				h = eps;
+			x[j] = temp + h;
+
+			fcn(m,n,x,wa,iflag);
+			memcpy(was+j*m,wa,m*sizeof(double));
+			if( *iflag < 0)
+				return 0;
+			x[j] = temp;
+			hs[j]=h;
+			//pmat( m, n, fjac );
+			//for( i=0; i<m; i++ )
+			//{
+			//	
+			//	fjac[ij] = (wa[i] - fvec[i])/h;
+			//	ij += 1;	/* fjac[i+m*j] */
+			//}
+		}
+		);
 		begin=0;end=intvl;
 		for(i=0;i<_cores;i++)
-		{
-			 paras[i].m=m;
-			 paras[i].n=n;
+			{
+				paras[i].m=m;
+				paras[i].n=n;
 
-			 paras[i].n_begin=begin;
-			 paras[i].n_end=end;
-			 paras[i].iflag=iflag;
-	         paras[i].x=x;
-			 paras[i].fvec=fvec;
-			 paras[i].fjac=fjac1;
-			 paras[i].wa=wa;
-			 paras[i].eps=eps;
-			 paras[i].temp=temp;
-			//TIMETRACE("thread:",fdjac_thread(&paras[i]));
-			ret=pthread_create(&(tid[i]),NULL,fdjac_thread,(void*)(&paras[i]));
-			begin+=intvl;
-			end+=intvl;
-			if (end >n) end=n;
+				paras[i].n_begin=begin;
+				paras[i].n_end=end;
+				paras[i].iflag=iflag;
+				paras[i].x=x;
+				paras[i].fvec=fvec;
+				paras[i].fjac=fjac;
+				paras[i].was=was;
+				paras[i].eps=eps;
+				paras[i].temp=temp;
+				paras[i].hs=hs;
+				//paras[i].h=h;
+				//paras[i].j=j;
+				//TIMETRACE("thread:",fdjac_thread(&paras[i]));
+				ret=pthread_create(&(tid[i]),NULL,fdjac_thread,(void*)(&paras[i]));
+				begin+=intvl;
+				end+=intvl;
+				if (end >n) end=n;
 
-		}
-		for(i=0;i<_cores;i++)
-		{
-			pthread_join(tid[i], &stat);
-		}
-		//pmat( m, n, fjac );
+			}
+			for(i=0;i<_cores;i++)
+			{
+				pthread_join(tid[i], &stat);
+			}
+
+
+
+
+
+
+		
+
+
+
+		
+		
+		
 		free(tid);
 		free(paras);
+		free(was);
+		free(hs);
+		
 		printf("dist over\n");
 
 
-
-		pcom( m, n, fjac1,fjac );
+		//printf("trad begin\n");
+		//ij = 0;
+		//for( j=0; j<n; j++ )
+		//{
+		//	temp = x[j];
+		//	h = eps * fabs(temp);
+		//	if(h == zero)
+		//		h = eps;
+		//	x[j] = temp + h;
+		//	fcn(m,n,x,wa,iflag);
+		//	if( *iflag < 0)
+		//		return 0;
+		//	x[j] = temp;
+		//	for( i=0; i<m; i++ )
+		//	{
+		//		fjac_dist[ij] = (wa[i] - fvec[i])/h;
+		//		ij += 1;	/* fjac[i+m*j] */
+		//	}
+		//}
+		//printf("trad over\n");
 		
+		//pcom( m, n, fjac_dist,fjac );
+		free(fjac_dist);
 
 	}
 	else
