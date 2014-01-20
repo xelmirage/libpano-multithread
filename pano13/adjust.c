@@ -42,7 +42,7 @@
 #include <float.h>
 #include <assert.h>
 #include "PTcommon.h"
-
+#include"pthread.h"
 #define C_FACTOR        100.0
 
 static  AlignInfo       *optInfo;       // This struct holds all informations for the optimization

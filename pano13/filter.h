@@ -785,6 +785,7 @@ void 	matrix_inv_mult		( double m[3][3], double vector[3] );
 double 	smallestRoot		( double *p );
 void 	SetCorrectionRadius	( cPrefs *cP );
 int		lmdif				();
+int     lmdif_dist          (); 
 void	fourier				( TrformStr *TrPtr, cPrefs *cP );
 unsigned short 	gamma_correct( double pix );
 int 	EqualCPrefs( cPrefs *c1, cPrefs *c2 );

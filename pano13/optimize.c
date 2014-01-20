@@ -141,12 +141,20 @@ void  RunLMOptimizer( OptInfo	*o)
 		if (istrat == 1) {
 			LM.ftol = 0.05;  // for distance-only strategy, bail out when convergence slows
 		}
-
-		lmdif(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
+		if(LM.m>100)
+		{
+			lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
+				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,
+				LM.nprint,	&LM.info,	&LM.nfev,	LM.fjac,	LM.ldfjac,	LM.ipvt,
+				LM.qtf,		LM.wa1,		LM.wa2,		LM.wa3,		LM.wa4,     g);
+		}
+		else
+		{
+			lmdif(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,
 				LM.nprint,	&LM.info,	&LM.nfev,	LM.fjac,	LM.ldfjac,	LM.ipvt,
 				LM.qtf,		LM.wa1,		LM.wa2,		LM.wa3,		LM.wa4);
-
+		}
 		lmInfo = LM.info;
 
 		// At end, one final evaluation to get errors that do not have fov stabilization applied,
