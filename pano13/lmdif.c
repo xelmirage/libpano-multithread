@@ -2229,8 +2229,7 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 #if BUG
 	printf( "fdjac2\n" );
 #endif
-	if(m>100)
-	{
+	
 		fjac1=(double*)malloc(m*n*sizeof(double));
 		memset(fjac1,0,m*n);
 		printf("trad begin\n");
@@ -2318,33 +2317,12 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 		//pmat( m, n, fjac );
 
 
-		pcom( m, n, fjac1,fjac );
+		//pcom( m, n, fjac1,fjac );
 
 		memcpy(fjac,fjac1,m*n*sizeof(double));
 		free(fjac1);
 
-	}
-	else
-	{
-		ij = 0;
-		for( j=0; j<n; j++ )
-		{
-			temp = x[j];
-			h = eps * fabs(temp);
-			if(h == zero)
-				h = eps;
-			x[j] = temp + h;
-			fcn(m,n,x,wa,iflag);
-			if( *iflag < 0)
-				return 0;
-			x[j] = temp;
-			for( i=0; i<m; i++ )
-			{
-				fjac[ij] = (wa[i] - fvec[i])/h;
-				ij += 1;	/* fjac[i+m*j] */
-			}
-		}
-	}
+	
 #if BUG
 	//pmat( m, n, fjac );
 #endif

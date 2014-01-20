@@ -1003,6 +1003,14 @@ void optCopy(AlignInfo* dst,AlignInfo* src)
 	
 
 }
+void optFree(AlignInfo* g)
+{
+	free(g->im);
+	free(g->cpt);
+	free(g->opt);
+	free(g->t);
+	free(g->cim);
+}
 int fcnPano_dist(int m, int n, double x[], double fvec[], int *iflag,AlignInfo	g)
 {
         int i;
@@ -1173,6 +1181,6 @@ int fcnPano_dist(int m, int n, double x[], double fvec[], int *iflag,AlignInfo	g
                 fprintf(e.adjustLogFile,"\n");
                 fflush(e.adjustLogFile);
         }
-
+		optFree(&(e.optInfo));
         return 0;
 }
