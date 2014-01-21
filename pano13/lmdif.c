@@ -874,7 +874,7 @@ L30:
 #ifdef _DEBUG
 	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
 #else
-	fdjac2(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4);
+	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
 #endif
 	
 	*nfev += n;
@@ -900,7 +900,7 @@ L30:
 #ifdef _DEBUG
 	TIMETRACE("qrfac",qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);;) 
 #else
-	qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);
+	TIMETRACE("qrfac",qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);;) 
 #endif
 	
 	/*
