@@ -251,7 +251,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;$(WXWIDGETS_HOME)\src\tiff\libtiff;C:\Program Files\Java\jdk1.7.0_07\include\win32;C:\Program Files\Java\jdk1.7.0_07\include;E:\huginbase64\pthreads.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;$(WXWIDGETS_HOME)\src\tiff\libtiff;C:\Program Files\Java\jdk1.7.0_25\include\win32;C:\Program Files\Java\jdk1.7.0_25\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDOWS;_WIN64;WIN64; WIN32;_CONSOLE;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
