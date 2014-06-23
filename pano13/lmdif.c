@@ -2501,7 +2501,7 @@ static int PT_UNUSED pcom( int m, int n,double x[] PT_UNUSED, double y[] PT_UNUS
 		for( j=0; j<m; j++ )
 		{
 			if(fabs(x[k]-y[k])>0.000001)
-			printf( "n=%d, m=%d, fvec1(dist)=%.5e, fvec=%.5e\n ", i,j,x[k],y[k] );
+			printf( "n=%d, m=%d, old(dist)=%.5e, new=%.5e\n ", i,j,x[k],y[k] );
 			k += 1;
 		}
 		//printf( "\n" );

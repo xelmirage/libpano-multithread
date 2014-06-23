@@ -46,7 +46,7 @@
 #define PROGRESS_VERSION VERSION "\0"
 
 #define PTVERSION_NAME_LEGALCOPYRIGHT "LegalCopyright"
-#define PTVERSION_LEGALCOPYRIGHT "Copyright © 1999, 2000, 2001, 2005, 2006 Helmut Dersch\0"
+#define PTVERSION_LEGALCOPYRIGHT "Copyright ?1999, 2000, 2001, 2005, 2006 Helmut Dersch\0"
 
 #define PTVERSION_NAME_COMMENT "Comments"
 
