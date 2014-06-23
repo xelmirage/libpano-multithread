@@ -874,7 +874,7 @@ L30:
 #ifdef _DEBUG
 	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
 #else
-	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
+	fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);
 #endif
 	
 	*nfev += n;
@@ -900,7 +900,7 @@ L30:
 #ifdef _DEBUG
 	TIMETRACE("qrfac",qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);;) 
 #else
-	TIMETRACE("qrfac",qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);;) 
+	qrfac(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);
 #endif
 	
 	/*
@@ -2103,7 +2103,9 @@ int fdjac_thread(struct fdjac_para* para)
 	int i,j,ij;
 	//ij = 0;
 	double h,temp;
+#ifdef _DEBUG
 	printf("thread %d to %d begin\n",para->n_begin,para->n_end);
+#endif
 	for( j=0; j<(para->n_end)-(para->n_begin); j++ )
 	{
 		
@@ -2232,8 +2234,9 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 	
 		fjac1=(double*)malloc(m*n*sizeof(double));
 		memset(fjac1,0,m*n);
+#ifdef _DEBUG
 		printf("trad begin\n");
-
+#endif
 		
 
 		//ij = 0;
@@ -2277,7 +2280,9 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 		{
 			intvl=n/_cores+1;
 		}
+#ifdef _DEBUG
 		printf("begin multithread processing %d cores\n",_cores);
+#endif
 		tid=(pthread_t*)malloc(_cores*sizeof(pthread_t));
 		paras=(struct fdjac_para*)malloc(_cores*sizeof(struct fdjac_para));
 		begin=0;end=intvl;
@@ -2323,7 +2328,9 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 		free(tid);
 		free(paras);
 		//pmat( m, n, fjac1 );
+#ifdef _DEBUG
 		printf("dist over\n");
+#endif
 		//pmat( m, n, fjac );
 
 
