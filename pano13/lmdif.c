@@ -2266,7 +2266,17 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 
 		
 		_cores=getCPUCount();
-		intvl=n/_cores+1;
+		if(_cores>=n)
+		{
+			_cores=n;
+			intvl=1;
+
+
+		}
+		else
+		{
+			intvl=n/_cores+1;
+		}
 		printf("begin multithread processing %d cores\n",_cores);
 		tid=(pthread_t*)malloc(_cores*sizeof(pthread_t));
 		paras=(struct fdjac_para*)malloc(_cores*sizeof(struct fdjac_para));
