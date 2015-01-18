@@ -3224,35 +3224,35 @@ int fdjac2_cl(int m, int n, double x[], double fvec[], double fjac[],
 	hh = (double*)malloc(n*sizeof(double));
 	memset(fjac1, 0, m*n*sizeof(double));
 	memset(wa1, 0, m*n*sizeof(double));
-#ifdef _DEBUG
-	printf("trad begin\n");
-#endif
-
-	double *trad_h = (double*)malloc(n*sizeof(double));
-	ij = 0;
-	for( j=0; j<n; j++ )
-	{
-		//printf("j=%d, iflag=%d\n",j,*iflag);
-		temp = x[j];
-		h = eps * fabs(temp);
-		if(h == zero)
-			h = eps;
-		x[j] = temp + h;
-		
-		fcn(m,n,x,wa,iflag);
-		
-		if( *iflag < 0)
-			return 0;
-		x[j] = temp;
-		for( i=0; i<m; i++ )
-		{
-			fjac[ij] = (wa[i] - fvec[i])/h;
-			ij += 1;	/* fjac[i+m*j] */
-		}
-		trad_h[j] = h;
-	}
-	
-	printf("trad over\n");
+//#ifdef _DEBUG
+//	printf("trad begin\n");
+//#endif
+//
+//	double *trad_h = (double*)malloc(n*sizeof(double));
+//	ij = 0;
+//	for( j=0; j<n; j++ )
+//	{
+//		//printf("j=%d, iflag=%d\n",j,*iflag);
+//		temp = x[j];
+//		h = eps * fabs(temp);
+//		if(h == zero)
+//			h = eps;
+//		x[j] = temp + h;
+//		
+//		fcn(m,n,x,wa,iflag);
+//		
+//		if( *iflag < 0)
+//			return 0;
+//		x[j] = temp;
+//		for( i=0; i<m; i++ )
+//		{
+//			fjac[ij] = (wa[i] - fvec[i])/h;
+//			ij += 1;	/* fjac[i+m*j] */
+//		}
+//		trad_h[j] = h;
+//	}
+//	
+//	printf("trad over\n");
 
 
 
@@ -3336,16 +3336,16 @@ int fdjac2_cl(int m, int n, double x[], double fvec[], double fjac[],
 #ifdef _DEBUG
 	printf("dist over\n");
 #endif
-	pmat( m, n, fjac );
+	/*pmat( m, n, fjac );
 	pmat(m, n, fjac1);
 
 	pcom( m, n,fjac,fjac1 );
-	pcom(1, n, trad_h, hh);
+	pcom(1, n, trad_h, hh);*/
 	memcpy(fjac, fjac1, m*n*sizeof(double));
 	free(fjac1);
 	free(wa1);
 	free(hh);
-	free(trad_h);
+	//free(trad_h);
 
 #if BUG
 	//pmat( m, n, fjac );
