@@ -141,12 +141,16 @@ void  RunLMOptimizer( OptInfo	*o)
 		if (istrat == 1) {
 			LM.ftol = 0.05;  // for distance-only strategy, bail out when convergence slows
 		}
-		if(LM.m>1000)
+		if(LM.m>3000)
 		{
-			lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
+		/*	lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,
 				LM.nprint,	&LM.info,	&LM.nfev,	LM.fjac,	LM.ldfjac,	LM.ipvt,
-				LM.qtf,		LM.wa1,		LM.wa2,		LM.wa3,		LM.wa4,     g);
+				LM.qtf,		LM.wa1,		LM.wa2,		LM.wa3,		LM.wa4,     g);*/
+			lmdif_cl(LM.m, LM.n, LM.x, LM.fvec, LM.ftol, LM.xtol,
+				LM.gtol, LM.maxfev, LM.epsfcn, LM.diag, LM.mode, LM.factor,
+				LM.nprint, &LM.info, &LM.nfev, LM.fjac, LM.ldfjac, LM.ipvt,
+				LM.qtf, LM.wa1, LM.wa2, LM.wa3, LM.wa4, g);
 		}
 		else
 		{

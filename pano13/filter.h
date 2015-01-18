@@ -786,6 +786,7 @@ double 	smallestRoot		( double *p );
 void 	SetCorrectionRadius	( cPrefs *cP );
 int		lmdif				();
 int     lmdif_dist          (); 
+int     lmdif_cl();
 void	fourier				( TrformStr *TrPtr, cPrefs *cP );
 unsigned short 	gamma_correct( double pix );
 int 	EqualCPrefs( cPrefs *c1, cPrefs *c2 );
