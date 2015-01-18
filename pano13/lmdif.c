@@ -2347,6 +2347,7 @@ int cl_clac(double *fdjac, double *wa,double* fvec, int m, int n,double* hh)
 	cl_uint numPlatforms;//平台数目
 	cl_platform_id platform = NULL;//平台ID
 	status = clGetPlatformIDs(0, NULL, &numPlatforms);//获取平台数目
+	printf("begin cl computing\n");
 	if (status != CL_SUCCESS)
 	{
 		printf( "Error: Getting Platforms. (clGetPlatformsIDs)\n");
@@ -2898,6 +2899,10 @@ int cl_clac(double *fdjac, double *wa,double* fvec, int m, int n,double* hh)
 		free(devices);
 		devices = NULL;
 	}
+	printf("cl computing finish\n");
+
+
+	return EXIT_SUCCESS;
 }
 //int fdjac_thread(int m,int n,double x[],double fvec[], double fjac[],
 //	int* iflag,double wa[],int n_begin,int n_end,double eps,double temp)
