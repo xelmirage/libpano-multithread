@@ -221,3 +221,4 @@ pip-log.txt
 .mr.developer.cfg
 *.vcxproj
 *.vcxproj
+*.vcxproj
