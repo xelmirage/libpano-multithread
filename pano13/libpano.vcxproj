@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug CMD|Win32">
       <Configuration>Debug CMD</Configuration>
@@ -7,6 +7,14 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug CMD|x64">
       <Configuration>Debug CMD</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug GUI|Win32">
+      <Configuration>Debug GUI</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug GUI|x64">
+      <Configuration>Debug GUI</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release CMD|Win32">
@@ -35,32 +43,52 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="LocalDefs.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="LocalDefs.props" />
   </ImportGroup>
@@ -75,6 +103,9 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -83,37 +114,39 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">$(Configuration)\$(Platform)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">$(Configuration)\$(Platform)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">$(Configuration)\$(Platform)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">$(Configuration)\$(Platform)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">$(Configuration)\$(Platform)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">$(Configuration)\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">$(Configuration)\$(Platform)\</IntDir>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'" />
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">
+    <OutDir>$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">
     <BuildLog>
@@ -134,12 +167,10 @@
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
@@ -159,18 +190,44 @@
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
       <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
+    </PreLinkEvent>
+    <Lib>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)$(ProjectName)BuildLog.htm</Path>
+    </BuildLog>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>8Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
@@ -190,18 +247,15 @@
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
       <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
@@ -216,8 +270,8 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;$(WXWIDGETS_HOME)\src\tiff\libtiff;$(WXWIDGETS_HOME)\include;F:\huginbase64\pthreads.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDOWS;_WIN64;WIN64;WIN32;_CONSOLE;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\huginbase64\wxWidgets-3.0.2\src\zlib;F:\huginbase64\wxWidgets-3.0.2\src\png;F:\huginbase64\wxWidgets-3.0.2\src\tiff\libtiff;F:\huginbase64\wxWidgets-3.0.2\src\jpeg;F:\huginbase64\wxWidgets-3.0.2\src;F:\huginbase64\pthreads.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;WIN64;WIN32;_CONSOLE;_LIB;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -229,12 +283,10 @@
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
@@ -251,24 +303,53 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>F:\huginbase64\pthreads.2\include;$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;$(WXWIDGETS_HOME)\src\tiff\libtiff;C:\Program Files\Java\jdk1.7.0_25\include\win32;C:\Program Files\Java\jdk1.7.0_25\include;F:\huginbase64\pthreads.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDOWS;_WIN64;WIN64; WIN32;_CONSOLE;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\huginbase64\wxWidgets-3.0.2\src\zlib;F:\huginbase64\wxWidgets-3.0.2\src\png;F:\huginbase64\wxWidgets-3.0.2\src\tiff\libtiff;F:\huginbase64\wxWidgets-3.0.2\src\jpeg;F:\huginbase64\wxWidgets-3.0.2\src;F:\huginbase64\pthreads.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;WIN64;WIN32;_CONSOLE;_LIB;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
       <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
+    </PreLinkEvent>
+    <Lib>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">
+    <BuildLog>
+      <Path>$(IntDir)$(ProjectName)BuildLog.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;WIN64; WIN32;_WINDOWS;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>8Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
@@ -285,170 +366,95 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(WXWIDGETS_HOME)\src\zlib;$(WXWIDGETS_HOME)\src\png;$(WXWIDGETS_HOME)\src\tiff;$(WXWIDGETS_HOME)\src\jpeg;$(WXWIDGETS_HOME)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WIN64;WIN64;WIN32;_WINDOWS;_LIB;_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\huginbase64\wxWidgets-3.0.2\src\zlib;F:\huginbase64\wxWidgets-3.0.2\src\png;F:\huginbase64\wxWidgets-3.0.2\src\tiff\libtiff;F:\huginbase64\wxWidgets-3.0.2\src\jpeg;F:\huginbase64\wxWidgets-3.0.2\src;F:\huginbase64\pthreads.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;WIN64; WIN32;_WINDOWS;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>8Bytes</StructMemberAlignment>
       <ProgramDataBaseFileName>$(IntDir)pano13.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat />
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <ResourceCompile>
-      <ResourceOutputFileName>
-      </ResourceOutputFileName>
+      <ResourceOutputFileName />
     </ResourceCompile>
     <PreLinkEvent>
-      <Command>
-      </Command>
+      <Command />
     </PreLinkEvent>
     <Lib>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="adjust.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="bmp.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="ColourBrightness.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="correct.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="fftn.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="file.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="filter.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="fourier.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="tools\compat_win32\getopt.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="hdrfile.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="jpeg.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="jpegicc.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="lmdif.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="math.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="metadata.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="morpher.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="multilayer.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="optimize.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="PaniniGeneral.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="parser.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="perspect.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="png.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="ppm.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="PTcommon.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="PTDialogs.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
+    <ClCompile Include="adjust.c" />
+    <ClCompile Include="bmp.c" />
+    <ClCompile Include="ColourBrightness.c" />
+    <ClCompile Include="correct.c" />
+    <ClCompile Include="fftn.c" />
+    <ClCompile Include="file.c" />
+    <ClCompile Include="filter.c" />
+    <ClCompile Include="fourier.c" />
+    <ClCompile Include="hdrfile.c" />
+    <ClCompile Include="jpeg.c" />
+    <ClCompile Include="jpegicc.c" />
+    <ClCompile Include="lmdif.c" />
+    <ClCompile Include="math.c" />
+    <ClCompile Include="metadata.c" />
+    <ClCompile Include="morpher.c" />
+    <ClCompile Include="multilayer.c" />
+    <ClCompile Include="optimize.c" />
+    <ClCompile Include="PaniniGeneral.c" />
+    <ClCompile Include="parser.c" />
+    <ClCompile Include="perspect.c" />
+    <ClCompile Include="png.c" />
+    <ClCompile Include="ppm.c" />
+    <ClCompile Include="PTcommon.c" />
+    <ClCompile Include="PTDialogs.c" />
     <ClCompile Include="pteditor.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">true</ExcludedFromBuild>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
     </ClCompile>
-    <ClCompile Include="ptfeather.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
+    <ClCompile Include="ptfeather.c" />
     <ClCompile Include="ptpicker.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">true</ExcludedFromBuild>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
     </ClCompile>
-    <ClCompile Include="ptstitch.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="queryfeature.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="remap.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="resample.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="rgbe.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="seamer.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
+    <ClCompile Include="ptstitch.c" />
+    <ClCompile Include="queryfeature.c" />
+    <ClCompile Include="remap.c" />
+    <ClCompile Include="resample.c" />
+    <ClCompile Include="rgbe.c" />
+    <ClCompile Include="seamer.c" />
     <ClCompile Include="sys_ansi.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">true</ExcludedFromBuild>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
     </ClCompile>
-    <ClCompile Include="sys_common.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
+    <ClCompile Include="sys_common.c" />
     <ClCompile Include="sys_win.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">true</ExcludedFromBuild>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
     </ClCompile>
-    <ClCompile Include="tiff.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="Triangulate.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="utils.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
-    <ClCompile Include="ZComb.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">Default</CompileAs>
-    </ClCompile>
+    <ClCompile Include="tiff.c" />
+    <ClCompile Include="tools\compat_win32\getopt.c" />
+    <ClCompile Include="Triangulate.c" />
+    <ClCompile Include="ZComb.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColourBrightness.h" />
@@ -456,27 +462,29 @@
     <ClInclude Include="fftn.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="filter.h" />
-    <ClInclude Include="tools\compat_win32\getopt.h" />
     <ClInclude Include="metadata.h" />
     <ClInclude Include="PaniniGeneral.h" />
     <ClInclude Include="panorama.h" />
-    <ClInclude Include="pt_stdint.h" />
     <ClInclude Include="PTcommon.h" />
     <ClInclude Include="pteditor.h" />
     <ClInclude Include="ptutils.h" />
+    <ClInclude Include="pt_stdint.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="rgbe.h" />
     <ClInclude Include="seamer.h" />
-    <CustomBuildStep Include="sys_ansi.h">
+    <CustomBuild Include="sys_ansi.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|x64'">true</ExcludedFromBuild>
-    </CustomBuildStep>
-    <CustomBuildStep Include="sys_win.h">
+    </CustomBuild>
+    <CustomBuild Include="sys_win.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">true</ExcludedFromBuild>
-    </CustomBuildStep>
+    </CustomBuild>
+    <ClInclude Include="tools\compat_win32\getopt.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="ZComb.h" />
   </ItemGroup>
@@ -484,6 +492,8 @@
     <ResourceCompile Include="pano13.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug CMD|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release CMD|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release GUI|Win32'">true</ExcludedFromBuild>

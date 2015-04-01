@@ -135,9 +135,6 @@
     <ClCompile Include="ZComb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColourBrightness.h">
@@ -206,11 +203,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuildStep Include="sys_ansi.h">
+    <CustomBuild Include="sys_ansi.h">
       <Filter>Header Files</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="sys_win.h">
+    </CustomBuild>
+    <CustomBuild Include="sys_win.h">
       <Filter>Header Files</Filter>
-    </CustomBuildStep>
+    </CustomBuild>
   </ItemGroup>
 </Project>
