@@ -141,7 +141,7 @@ void  RunLMOptimizer( OptInfo	*o)
 		if (istrat == 1) {
 			LM.ftol = 0.05;  // for distance-only strategy, bail out when convergence slows
 		}
-		if(LM.m>1000)
+		if(LM.m>10)
 		{
 			lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,

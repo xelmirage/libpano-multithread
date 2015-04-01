@@ -898,10 +898,25 @@ L30:
 	/*
 	*	 compute the qr factorization of the jacobian.
 	*/
-#ifndef _DEBUG
-	TIMETRACE("qrfac",qrfac_dist(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);;) 
+#ifdef _DEBUG
+
+	TIMETRACE("qrfac", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
+	printf("\n-------ipvt--------\n");
+	pmat(1, n, ipvt);
+	printf("\n-------wa1--------\n");
+	pmat(1, n, wa1);
+	printf("\n-------wa2--------\n");
+	pmat(1, n, wa2);
+	/*TIMETRACE("qrfac_dist", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
+	printf("\n-------ipvt--------\n");
+	pmat(1,n, ipvt);
+	printf("\n-------wa1--------\n");
+	pmat(1, n, wa1);
+	printf("\n-------wa2--------\n");
+	pmat(1, n, wa2);*/
+
 #else
-	qrfac_dist(m,n,fjac,ldfjac,1,ipvt,n,wa1,wa2,wa3);
+	qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);
 #endif
 	
 	/*
@@ -1839,35 +1854,44 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	for (j = 0; j<minmn; j++)
 	{
 		if (pivot == 0)
-			goto L40;
-		/*
-		*	 bring the column of largest norm into the pivot position.
-		*/
-		kmax = j;
-		for (k = j; k<n; k++)
 		{
-			if (rdiag[k] > rdiag[kmax])
-				kmax = k;
+			
 		}
-		if (kmax == j)
-			goto L40;
-
-		ij = m * j;
-		jj = m * kmax;
-		for (i = 0; i<m; i++)
+		else
 		{
-			temp = a[ij]; /* [i+m*j] */
-			a[ij] = a[jj]; /* [i+m*kmax] */
-			a[jj] = temp;
-			ij += 1;
-			jj += 1;
-		}
-		rdiag[kmax] = rdiag[j];
-		wa[kmax] = wa[j];
-		k = ipvt[j];
-		ipvt[j] = ipvt[kmax];
-		ipvt[kmax] = k;
+			/*
+			*	 bring the column of largest norm into the pivot position.
+			*/
+			kmax = j;
+			for (k = j; k<n; k++)
+			{
+				if (rdiag[k] > rdiag[kmax])
+					kmax = k;
+			}
+			if (kmax == j)
 
+			{
+			
+			}
+			else
+			{
+				ij = m * j;
+				jj = m * kmax;
+				for (i = 0; i < m; i++)
+				{
+					temp = a[ij]; /* [i+m*j] */
+					a[ij] = a[jj]; /* [i+m*kmax] */
+					a[jj] = temp;
+					ij += 1;
+					jj += 1;
+				}
+				rdiag[kmax] = rdiag[j];
+				wa[kmax] = wa[j];
+				k = ipvt[j];
+				ipvt[j] = ipvt[kmax];
+				ipvt[kmax] = k;
+			}
+		}
 	L40:
 		/*
 		*	 compute the householder transformation to reduce the
@@ -1876,58 +1900,62 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		jj = j + m*j;
 		ajnorm = enorm(m - j, &a[jj]);
 		if (ajnorm == zero)
-			goto L100;
-		if (a[jj] < zero)
-			ajnorm = -ajnorm;
-		ij = jj;
-		for (i = j; i<m; i++)
 		{
-			a[ij] /= ajnorm;
-			ij += 1; /* [i+m*j] */
+			
 		}
-		a[jj] += one;
-		/*
-		*	 apply the transformation to the remaining columns
-		*	 and update the norms.
-		*/
-		jp1 = j + 1;
-		if (jp1 < n)
+		else
 		{
-			for (k = jp1; k<n; k++)
+			if (a[jj] < zero)
+				ajnorm = -ajnorm;
+			ij = jj;
+			for (i = j; i < m; i++)
 			{
-				sum = zero;
-				ij = j + m*k;
-				jj = j + m*j;
-				for (i = j; i<m; i++)
+				a[ij] /= ajnorm;
+				ij += 1; /* [i+m*j] */
+			}
+			a[jj] += one;
+			/*
+			*	 apply the transformation to the remaining columns
+			*	 and update the norms.
+			*/
+			jp1 = j + 1;
+			if (jp1 < n)
+			{
+				for (k = jp1; k < n; k++)
 				{
-					sum += a[jj] * a[ij];
-					ij += 1; /* [i+m*k] */
-					jj += 1; /* [i+m*j] */
-				}
-				temp = sum / a[j + m*j];
-				ij = j + m*k;
-				jj = j + m*j;
-				for (i = j; i<m; i++)
-				{
-					a[ij] -= temp*a[jj];
-					ij += 1; /* [i+m*k] */
-					jj += 1; /* [i+m*j] */
-				}
-				if ((pivot != 0) && (rdiag[k] != zero))
-				{
-					temp = a[j + m*k] / rdiag[k];
-					temp = dmax1(zero, one - temp*temp);
-					rdiag[k] *= sqrt(temp);
-					temp = rdiag[k] / wa[k];
-					if ((p05*temp*temp) <= MACHEP)
+					sum = zero;
+					ij = j + m*k;
+					jj = j + m*j;
+					for (i = j; i < m; i++)
 					{
-						rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
-						wa[k] = rdiag[k];
+						sum += a[jj] * a[ij];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					temp = sum / a[j + m*j];
+					ij = j + m*k;
+					jj = j + m*j;
+					for (i = j; i < m; i++)
+					{
+						a[ij] -= temp*a[jj];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					if ((pivot != 0) && (rdiag[k] != zero))
+					{
+						temp = a[j + m*k] / rdiag[k];
+						temp = dmax1(zero, one - temp*temp);
+						rdiag[k] *= sqrt(temp);
+						temp = rdiag[k] / wa[k];
+						if ((p05*temp*temp) <= MACHEP)
+						{
+							rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
+							wa[k] = rdiag[k];
+						}
 					}
 				}
 			}
 		}
-
 	L100:
 		rdiag[j] = -ajnorm;
 	}
