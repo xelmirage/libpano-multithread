@@ -1733,13 +1733,124 @@ L100:
 }
 struct qrfac_para
 {
-	int m; int n;
+
+	int m, n, j_begin, j_end, *iflag;
 	double *a; int lda PT_UNUSED; int pivot;
 	int *ipvt; int lipvt PT_UNUSED; double *rdiag;
 	double *acnorm; double *wa;
 };
 int qrfac_thread(struct qrfac_para* para)
 {
+	int i, ij, jj, j, k, kmax;
+	double ajnorm, sum, temp;
+	for (j = para->j_begin; j<para->j_end; ++j)
+	{
+		if (para->pivot == 0)
+		{
+			//in fact, to jump to L41,add this to avoid hard jump
+		}
+		else
+		{
+			/*
+			*	 bring the column of largest norm into the pivot position.
+			*/
+			kmax = j;
+			for (k = j; k<para->n; k++)
+			{
+				if (para->rdiag[k] > para->rdiag[kmax])
+					kmax = k;
+			}
+			if (kmax == j)
+
+			{
+
+			}
+			else
+			{
+				ij = para->m * j;
+				jj = para->m * kmax;
+				for (i = 0; i <para->m; i++)
+				{
+					temp = para->a[ij]; /* [i+m*j] */
+					a[ij] = a[jj]; /* [i+m*kmax] */
+					a[jj] = temp;
+					ij += 1;
+					jj += 1;
+				}
+				para->rdiag[kmax] = para->rdiag[j];
+				para->wa[kmax] = para->wa[j];
+				k = para->ipvt[j];
+				ipvt[j] = ipvt[kmax];
+				ipvt[kmax] = k;
+			}
+		}
+	L41:
+		/*
+		*	 compute the householder transformation to reduce the
+		*	 j-th column of a to a multiple of the j-th unit vector.
+		*/
+		jj = j + m*j;
+		ajnorm = enorm(m - j, &a[jj]);
+		if (ajnorm == zero)
+		{
+			//in fact, to jump to L101,add this to avoid hard jump
+		}
+		else
+		{
+			if (a[jj] < zero)
+				ajnorm = -ajnorm;
+			ij = jj;
+			for (i = j; i < m; i++)
+			{
+				a[ij] /= ajnorm;
+				ij += 1; /* [i+m*j] */
+			}
+			a[jj] += one;
+			/*
+			*	 apply the transformation to the remaining columns
+			*	 and update the norms.
+			*/
+			jp1 = j + 1;
+			if (jp1 < n)
+			{
+				for (k = jp1; k < n; k++)
+				{
+					sum = zero;
+					ij = j + m*k;
+					jj = j + m*j;
+					for (i = j; i < m; i++)
+					{
+						sum += a[jj] * a[ij];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					temp = sum / a[j + m*j];
+					ij = j + m*k;
+					jj = j + m*j;
+					for (i = j; i < m; i++)
+					{
+						a[ij] -= temp*a[jj];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					if ((pivot != 0) && (rdiag[k] != zero))
+					{
+						temp = a[j + m*k] / rdiag[k];
+						temp = dmax1(zero, one - temp*temp);
+						rdiag[k] *= sqrt(temp);
+						temp = rdiag[k] / wa[k];
+						if ((p05*temp*temp) <= MACHEP)
+						{
+							rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
+							wa[k] = rdiag[k];
+						}
+					}
+				}
+			}
+		}
+	L101:
+		rdiag[j] = -ajnorm;
+	}
 	return 0;
 }
 int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
@@ -1829,6 +1940,21 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	static double one = 1.0;
 	static double p05 = 0.05;
 	extern double MACHEP;
+
+
+	//added for multi thread
+
+	int _cores;
+
+	int intvl;
+	pthread_t *tid;
+	int ret;
+	int begin, end;
+	struct qrfac_para* paras;
+	void* stat = NULL;
+
+
+	//end of added for thread
 	/*
 	*     compute the initial column norms and initialize several arrays.
 	*/
@@ -1850,115 +1976,149 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	/*
 	*     reduce a to r with householder transformations.
 	*/
-	minmn = m <= n ? m : n;
-	for (j = 0; j<minmn; j++)
-	{
-		if (pivot == 0)
-		{
-			
-		}
-		else
-		{
-			/*
-			*	 bring the column of largest norm into the pivot position.
-			*/
-			kmax = j;
-			for (k = j; k<n; k++)
-			{
-				if (rdiag[k] > rdiag[kmax])
-					kmax = k;
-			}
-			if (kmax == j)
 
-			{
-			
-			}
-			else
-			{
-				ij = m * j;
-				jj = m * kmax;
-				for (i = 0; i < m; i++)
-				{
-					temp = a[ij]; /* [i+m*j] */
-					a[ij] = a[jj]; /* [i+m*kmax] */
-					a[jj] = temp;
-					ij += 1;
-					jj += 1;
-				}
-				rdiag[kmax] = rdiag[j];
-				wa[kmax] = wa[j];
-				k = ipvt[j];
-				ipvt[j] = ipvt[kmax];
-				ipvt[kmax] = k;
-			}
-		}
-	L40:
-		/*
-		*	 compute the householder transformation to reduce the
-		*	 j-th column of a to a multiple of the j-th unit vector.
-		*/
-		jj = j + m*j;
-		ajnorm = enorm(m - j, &a[jj]);
-		if (ajnorm == zero)
-		{
-			
-		}
-		else
-		{
-			if (a[jj] < zero)
-				ajnorm = -ajnorm;
-			ij = jj;
-			for (i = j; i < m; i++)
-			{
-				a[ij] /= ajnorm;
-				ij += 1; /* [i+m*j] */
-			}
-			a[jj] += one;
-			/*
-			*	 apply the transformation to the remaining columns
-			*	 and update the norms.
-			*/
-			jp1 = j + 1;
-			if (jp1 < n)
-			{
-				for (k = jp1; k < n; k++)
-				{
-					sum = zero;
-					ij = j + m*k;
-					jj = j + m*j;
-					for (i = j; i < m; i++)
-					{
-						sum += a[jj] * a[ij];
-						ij += 1; /* [i+m*k] */
-						jj += 1; /* [i+m*j] */
-					}
-					temp = sum / a[j + m*j];
-					ij = j + m*k;
-					jj = j + m*j;
-					for (i = j; i < m; i++)
-					{
-						a[ij] -= temp*a[jj];
-						ij += 1; /* [i+m*k] */
-						jj += 1; /* [i+m*j] */
-					}
-					if ((pivot != 0) && (rdiag[k] != zero))
-					{
-						temp = a[j + m*k] / rdiag[k];
-						temp = dmax1(zero, one - temp*temp);
-						rdiag[k] *= sqrt(temp);
-						temp = rdiag[k] / wa[k];
-						if ((p05*temp*temp) <= MACHEP)
-						{
-							rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
-							wa[k] = rdiag[k];
-						}
-					}
-				}
-			}
-		}
-	L100:
-		rdiag[j] = -ajnorm;
+	minmn = m <= n ? m : n;
+	_cores = getCPUCount();
+	if (_cores >=minmn)
+	{
+		_cores =minmn;
+		intvl = 1;
+
+
 	}
+	else
+	{
+		intvl = minmn / _cores + 1;
+	}
+
+#ifdef _DEBUG
+	printf("begin multithread processing %d cores\n", _cores);
+#endif
+
+	tid = (pthread_t*)malloc(_cores*sizeof(pthread_t));
+	paras = (struct qrfac_para*)malloc(_cores*sizeof(struct qrfac_para));
+	begin = 0; end = intvl;
+
+	for (i = 0; i < _cores; ++i)
+	{
+
+	}
+
+
+
+
+
+
+
+
+	//for (j = 0; j<minmn; j++)
+	//{
+	//	if (pivot == 0)
+	//	{
+	//		//in fact, to jump to L41,add this to avoid hard jump
+	//	}
+	//	else
+	//	{
+	//		/*
+	//		*	 bring the column of largest norm into the pivot position.
+	//		*/
+	//		kmax = j;
+	//		for (k = j; k<n; k++)
+	//		{
+	//			if (rdiag[k] > rdiag[kmax])
+	//				kmax = k;
+	//		}
+	//		if (kmax == j)
+
+	//		{
+	//		
+	//		}
+	//		else
+	//		{
+	//			ij = m * j;
+	//			jj = m * kmax;
+	//			for (i = 0; i < m; i++)
+	//			{
+	//				temp = a[ij]; /* [i+m*j] */
+	//				a[ij] = a[jj]; /* [i+m*kmax] */
+	//				a[jj] = temp;
+	//				ij += 1;
+	//				jj += 1;
+	//			}
+	//			rdiag[kmax] = rdiag[j];
+	//			wa[kmax] = wa[j];
+	//			k = ipvt[j];
+	//			ipvt[j] = ipvt[kmax];
+	//			ipvt[kmax] = k;
+	//		}
+	//	}
+	//L41:
+	//	/*
+	//	*	 compute the householder transformation to reduce the
+	//	*	 j-th column of a to a multiple of the j-th unit vector.
+	//	*/
+	//	jj = j + m*j;
+	//	ajnorm = enorm(m - j, &a[jj]);
+	//	if (ajnorm == zero)
+	//	{
+	//		//in fact, to jump to L101,add this to avoid hard jump
+	//	}
+	//	else
+	//	{
+	//		if (a[jj] < zero)
+	//			ajnorm = -ajnorm;
+	//		ij = jj;
+	//		for (i = j; i < m; i++)
+	//		{
+	//			a[ij] /= ajnorm;
+	//			ij += 1; /* [i+m*j] */
+	//		}
+	//		a[jj] += one;
+	//		/*
+	//		*	 apply the transformation to the remaining columns
+	//		*	 and update the norms.
+	//		*/
+	//		jp1 = j + 1;
+	//		if (jp1 < n)
+	//		{
+	//			for (k = jp1; k < n; k++)
+	//			{
+	//				sum = zero;
+	//				ij = j + m*k;
+	//				jj = j + m*j;
+	//				for (i = j; i < m; i++)
+	//				{
+	//					sum += a[jj] * a[ij];
+	//					ij += 1; /* [i+m*k] */
+	//					jj += 1; /* [i+m*j] */
+	//				}
+	//				temp = sum / a[j + m*j];
+	//				ij = j + m*k;
+	//				jj = j + m*j;
+	//				for (i = j; i < m; i++)
+	//				{
+	//					a[ij] -= temp*a[jj];
+	//					ij += 1; /* [i+m*k] */
+	//					jj += 1; /* [i+m*j] */
+	//				}
+	//				if ((pivot != 0) && (rdiag[k] != zero))
+	//				{
+	//					temp = a[j + m*k] / rdiag[k];
+	//					temp = dmax1(zero, one - temp*temp);
+	//					rdiag[k] *= sqrt(temp);
+	//					temp = rdiag[k] / wa[k];
+	//					if ((p05*temp*temp) <= MACHEP)
+	//					{
+	//						rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
+	//						wa[k] = rdiag[k];
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//L101:
+	//	rdiag[j] = -ajnorm;
+	//}
 	/*
 	*     last card of subroutine qrfac.
 	*/
