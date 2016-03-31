@@ -874,6 +874,8 @@ L30:
 	iflag = 2;
 #ifdef _DEBUG
 	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
+	printf("\n-------fjac--------\n");
+	pmat(m, n,fjac);
 #else
 	fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);
 #endif
@@ -901,6 +903,8 @@ L30:
 #ifdef _DEBUG
 
 	TIMETRACE("qrfac", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
+	printf("\n-------fjac--------\n");
+	pmat(m, n, fjac);
 	printf("\n-------ipvt--------\n");
 	pmat(1, n, ipvt);
 	printf("\n-------wa1--------\n");
@@ -1731,126 +1735,223 @@ L100:
 	*/
 	return 0;
 }
-struct qrfac_para
+struct qrfac_norms_para
 {
 
 	int m, n, j_begin, j_end, *iflag;
 	double *a; int lda PT_UNUSED; int pivot;
 	int *ipvt; int lipvt PT_UNUSED; double *rdiag;
 	double *acnorm; double *wa;
+	pthread_mutex_t* mutex, *ipvt_mutex, *a_mutex;
+	double* results;
 };
-int qrfac_thread(struct qrfac_para* para)
+void* qrfac_norms_thread(void* arg)
 {
-	//int i, ij, jj, j, k, kmax;
-	//double ajnorm, sum, temp;
-	//for (j = para->j_begin; j<para->j_end; ++j)
-	//{
-	//	if (para->pivot == 0)
-	//	{
-	//		//in fact, to jump to L41,add this to avoid hard jump
-	//	}
-	//	else
-	//	{
-	//		/*
-	//		*	 bring the column of largest norm into the pivot position.
-	//		*/
-	//		kmax = j;
-	//		for (k = j; k<para->n; k++)
-	//		{
-	//			if (para->rdiag[k] > para->rdiag[kmax])
-	//				kmax = k;
-	//		}
-	//		if (kmax == j)
+	struct qrfac_norms_para* para = (struct qrfac_norms_para*)arg;
+	int m, n,begin,end;
+	double* temp;
+	double norm;
+	m = para->m;
+	n = para->n;
+	int an_irreveleant_int;
+	begin = para->j_begin;
+	end = para->j_end;
+	temp = (double*)malloc(m*sizeof(double));
+	
+	for (int j = begin; j < end;++j)
+	{
+		pthread_mutex_lock(para->a_mutex);
+		an_irreveleant_int = 0;
+		memcpy(temp, para->a + j*m, m*sizeof(double));
+		pthread_mutex_unlock(para->a_mutex);
 
-	//		{
+		norm = enorm(m, temp);
 
-	//		}
-	//		else
-	//		{
-	//			ij = para->m * j;
-	//			jj = para->m * kmax;
-	//			for (i = 0; i <para->m; i++)
-	//			{
-	//				temp = para->a[ij]; /* [i+m*j] */
-	//				a[ij] = a[jj]; /* [i+m*kmax] */
-	//				a[jj] = temp;
-	//				ij += 1;
-	//				jj += 1;
-	//			}
-	//			para->rdiag[kmax] = para->rdiag[j];
-	//			para->wa[kmax] = para->wa[j];
-	//			k = para->ipvt[j];
-	//			ipvt[j] = ipvt[kmax];
-	//			ipvt[kmax] = k;
-	//		}
-	//	}
-	//L41:
-	//	/*
-	//	*	 compute the householder transformation to reduce the
-	//	*	 j-th column of a to a multiple of the j-th unit vector.
-	//	*/
-	//	jj = j + m*j;
-	//	ajnorm = enorm(m - j, &a[jj]);
-	//	if (ajnorm == zero)
-	//	{
-	//		//in fact, to jump to L101,add this to avoid hard jump
-	//	}
-	//	else
-	//	{
-	//		if (a[jj] < zero)
-	//			ajnorm = -ajnorm;
-	//		ij = jj;
-	//		for (i = j; i < m; i++)
-	//		{
-	//			a[ij] /= ajnorm;
-	//			ij += 1; /* [i+m*j] */
-	//		}
-	//		a[jj] += one;
-	//		/*
-	//		*	 apply the transformation to the remaining columns
-	//		*	 and update the norms.
-	//		*/
-	//		jp1 = j + 1;
-	//		if (jp1 < n)
-	//		{
-	//			for (k = jp1; k < n; k++)
-	//			{
-	//				sum = zero;
-	//				ij = j + m*k;
-	//				jj = j + m*j;
-	//				for (i = j; i < m; i++)
-	//				{
-	//					sum += a[jj] * a[ij];
-	//					ij += 1; /* [i+m*k] */
-	//					jj += 1; /* [i+m*j] */
-	//				}
-	//				temp = sum / a[j + m*j];
-	//				ij = j + m*k;
-	//				jj = j + m*j;
-	//				for (i = j; i < m; i++)
-	//				{
-	//					a[ij] -= temp*a[jj];
-	//					ij += 1; /* [i+m*k] */
-	//					jj += 1; /* [i+m*j] */
-	//				}
-	//				if ((pivot != 0) && (rdiag[k] != zero))
-	//				{
-	//					temp = a[j + m*k] / rdiag[k];
-	//					temp = dmax1(zero, one - temp*temp);
-	//					rdiag[k] *= sqrt(temp);
-	//					temp = rdiag[k] / wa[k];
-	//					if ((p05*temp*temp) <= MACHEP)
-	//					{
-	//						rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
-	//						wa[k] = rdiag[k];
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//L101:
-	//	rdiag[j] = -ajnorm;
-	//}
+
+		pthread_mutex_lock(para->mutex);
+		para->acnorm[j] = norm;
+		para->rdiag[j] = norm;
+		para->wa[j] = norm;
+		if(para->pivot!=0)
+		{
+			para->ipvt[j] = j;
+		}
+		pthread_mutex_unlock(para->mutex);
+
+
+
+
+	}
+
+
+
+	free(temp);
+	pthread_exit(NULL);
+	return 0;
+}
+
+//struct qrfac_trans_para_full
+//{
+//	int m, n, j_begin, j_end, *iflag;
+//	double *a; int lda PT_UNUSED; int pivot;
+//	int *ipvt; int lipvt PT_UNUSED; double *rdiag;
+//	double *acnorm; double *wa;
+//	pthread_mutex_t* mutex, *ipvt_mutex, *a_mutex;
+//	double* results;
+//	int *ids;
+//};
+//void* qrfac_trans_thread_full(void* arg)
+//{
+//	struct qrfac_trans_para_full* para = (struct qrfac_trans_para_full*)arg;
+//	int m, n, begin, end;
+//	m = para->m;
+//	n = para->n;
+//	begin = para->j_begin;
+//	end = para->j_end;
+//	int j;
+//	for (j =0; j<para->n; ++j)//or should dist at this layer?
+//	{
+//		if (pivot == 0)
+//		{
+//			//do noithing, in fact, to jump to L41,add this to avoid hard jump
+//		}
+//		else
+//		{
+//			/*
+//			*	 bring the column of largest norm into the pivot position.
+//			*/
+//			kmax = j;
+//			for (k = j; k<n; k++)
+//			{
+//				if (rdiag[k] > rdiag[kmax])
+//					kmax = k;
+//			}
+//			if (kmax == j)
+//
+//			{
+//
+//			}
+//			else
+//			{
+//				ij = m * j;
+//				jj = m * kmax;
+//				/***********can_dist********************/
+//				for (i = 0; i < m; i++)
+//				{
+//					temp = a[ij]; /* [i+m*j] */
+//					a[ij] = a[jj]; /* [i+m*kmax] */
+//					a[jj] = temp;
+//					ij += 1;
+//					jj += 1;
+//				}
+//				/***********end of can_dist********************/
+//				rdiag[kmax] = rdiag[j];
+//				wa[kmax] = wa[j];
+//				k = ipvt[j];
+//				ipvt[j] = ipvt[kmax];
+//				ipvt[kmax] = k;
+//			}
+//		}
+//	L141:
+//		/*
+//		*	 compute the householder transformation to reduce the
+//		*	 j-th column of a to a multiple of the j-th unit vector.
+//		*/
+//		jj = j + m*j;
+//		ajnorm = enorm(m - j, &a[jj]);
+//		if (ajnorm == zero)
+//		{
+//			//in fact, to jump to L101,add this to avoid hard jump
+//		}
+//		else
+//		{
+//			if (a[jj] < zero)
+//				ajnorm = -ajnorm;
+//			ij = jj;
+//			for (i = j; i < m; i++)
+//			{
+//				a[ij] /= ajnorm;
+//				ij += 1; /* [i+m*j] */
+//			}
+//			a[jj] += one;
+//			/*
+//			*	 apply the transformation to the remaining columns
+//			*	 and update the norms.
+//			*/
+//			jp1 = j + 1;
+//			if (jp1 < n)
+//			{
+//				for (k = jp1; k < n; k++)//should dist at this layer?
+//				{
+//					sum = zero;
+//					ij = j + m*k;
+//					jj = j + m*j;
+//					/***********can_dist********************/
+//					for (i = j; i < m; i++)
+//					{
+//						sum += a[jj] * a[ij];
+//						ij += 1; /* [i+m*k] */
+//						jj += 1; /* [i+m*j] */
+//					}
+//					/***********end_of_can_dist********************/
+//					temp = sum / a[j + m*j];
+//					ij = j + m*k;
+//					jj = j + m*j;
+//					/***********can_dist********************/
+//					for (i = j; i < m; i++)
+//					{
+//						a[ij] -= temp*a[jj];
+//						ij += 1; /* [i+m*k] */
+//						jj += 1; /* [i+m*j] */
+//					}
+//					/***********end of can_dist********************/
+//					if ((pivot != 0) && (rdiag[k] != zero))
+//					{
+//						temp = a[j + m*k] / rdiag[k];
+//						temp = dmax1(zero, one - temp*temp);
+//						rdiag[k] *= sqrt(temp);
+//						temp = rdiag[k] / wa[k];
+//						if ((p05*temp*temp) <= MACHEP)
+//						{
+//							rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
+//							wa[k] = rdiag[k];
+//						}
+//					}
+//				}
+//			}
+//		}
+//	L1101:
+//		rdiag[j] = -ajnorm;
+//	}
+//
+//
+//
+//
+//	pthread_exit(NULL);
+//	return 0;
+//}
+//
+//
+
+struct qrfac_trans_para_part
+	{
+		int m, n, j_begin, j_end, *iflag;
+		double *a; int lda PT_UNUSED; int pivot;
+		int *ipvt; int lipvt PT_UNUSED; double *rdiag;
+		double *acnorm; double *wa;
+		pthread_mutex_t* mutex, *ipvt_mutex, *a_mutex;
+		double* results;
+		int *ids;
+	};
+void* qrfac_trans_thread_full(void* arg)
+{
+
+
+
+
+
+
+	pthread_exit(NULL);
 	return 0;
 }
 int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
@@ -1940,35 +2041,121 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	static double one = 1.0;
 	static double p05 = 0.05;
 	extern double MACHEP;
-
+	
 
 	//added for multi thread
-
+	pthread_mutex_t anorm_try_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t ipvt_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t a_mutex = PTHREAD_MUTEX_INITIALIZER;
 	int _cores;
 
 	int intvl;
 	pthread_t *tid;
 	int ret;
 	int begin, end;
-	struct qrfac_para* paras;
+	struct qrfac_norms_para* norm_paras;
 	void* stat = NULL;
+	double* acnorm_try = NULL;
+	double* rdiag_try = NULL;
+	double *wa_try=NULL;
+	int* ipvt_try = NULL;
+	_cores = getCPUCount();
+	//_cores = 1;
+	if (_cores >= n)
+	{
+		_cores = n;
+		intvl = 1;
+
+
+	}
+	else
+	{
+		intvl = n / _cores + 1;
+	}
+#ifdef _DEBUG
+	printf("begin multithread processing %d cores\n", _cores);
+#endif
+	
+	acnorm_try = (double*)malloc(n*sizeof(double));
+	memset(acnorm_try, 21, n*sizeof(double));
+	rdiag_try = (double*)malloc(n*sizeof(double));
+	wa_try = (double*)malloc(n*sizeof(double));
+	ipvt_try = (int*)malloc(n*sizeof(int));
+	tid = (pthread_t*)malloc(_cores*sizeof(pthread_t));
+	norm_paras = (struct qrfac_norms_para*)malloc(_cores*sizeof(struct qrfac_norms_para));
+	begin = 0; end = intvl;
+	for (i = 0; i < _cores;++i)
+	{
+		norm_paras[i].m = m;
+		norm_paras[i].n = n;
+		norm_paras[i].mutex = &(anorm_try_mutex);
+
+
+
+		norm_paras[i].acnorm = acnorm;
+		norm_paras[i].rdiag = rdiag;
+		norm_paras[i].wa = wa;
+		norm_paras[i].ipvt = ipvt;
+
+
+		norm_paras[i].ipvt_mutex = &(ipvt_mutex);
+		norm_paras[i].a_mutex = &(a_mutex);
+		
+		
+		norm_paras[i].j_begin = begin;
+		norm_paras[i].j_end = end;
+		norm_paras[i].a = a;
+
+
+
+		ret = pthread_create(tid+i, NULL, qrfac_norms_thread, (void*)(norm_paras+i));
+		begin += intvl;
+		end += intvl;
+		if (end > n)
+			end = n;
+
+	}
+	for (i = 0; i < _cores;++i)
+	{
+		pthread_join(tid[i], NULL);
+	}
+	
+
+	//end of time trace
+
 
 
 	//end of added for thread
 	/*
 	*     compute the initial column norms and initialize several arrays.
 	*/
-	ij = 0;
 
-	for (j = 0; j < n; j++)
-	{
-		acnorm[j] = enorm(m, &a[ij]);
-		rdiag[j] = acnorm[j];
-		wa[j] = rdiag[j];
-		if (pivot != 0)
-			ipvt[j] = j;
-		ij += m; /* m*j */
-	}
+	//ij = 0;
+
+	//for (j = 0; j < n; j++)
+	//{
+	//	acnorm[j] = enorm(m, &a[ij]);
+	//	rdiag[j] = acnorm[j];
+	//	wa[j] = rdiag[j];
+	//	if (pivot != 0)
+	//		ipvt[j] = j;
+	//	ij += m; /* m*j */
+	//}
+
+	//puts("dists:\n");
+	//for (i = 0; i < n;++i)
+	//{
+	//	printf("%f,", acnorm_try[i]);
+	//}
+	//putchar('\n');
+	//puts("normal:\n");
+	//for (i = 0; i < n; ++i)
+	//{
+	//	printf("%f,", acnorm[i]);
+	//}
+	//putchar('\n');
+
+
 
 #if BUG
 	printf("qrfac\n");
@@ -2011,11 +2198,11 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 
 
-	for (j = 0; j<minmn; j++)
+	for (j = 0; j<minmn; j++)//or should dist at this layer?
 	{
 		if (pivot == 0)
 		{
-			//in fact, to jump to L41,add this to avoid hard jump
+			//do noithing, in fact, to jump to L41,add this to avoid hard jump
 		}
 		else
 		{
@@ -2037,6 +2224,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 			{
 				ij = m * j;
 				jj = m * kmax;
+				/***********can_dist********************/
 				for (i = 0; i < m; i++)
 				{
 					temp = a[ij]; /* [i+m*j] */
@@ -2045,6 +2233,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 					ij += 1;
 					jj += 1;
 				}
+				/***********end of can_dist********************/
 				rdiag[kmax] = rdiag[j];
 				wa[kmax] = wa[j];
 				k = ipvt[j];
@@ -2081,26 +2270,30 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 			jp1 = j + 1;
 			if (jp1 < n)
 			{
-				for (k = jp1; k < n; k++)
+				for (k = jp1; k < n; k++)//should dist at this layer?
 				{
 					sum = zero;
 					ij = j + m*k;
 					jj = j + m*j;
+					/***********can_dist********************/
 					for (i = j; i < m; i++)
 					{
 						sum += a[jj] * a[ij];
 						ij += 1; /* [i+m*k] */
 						jj += 1; /* [i+m*j] */
 					}
+					/***********end_of_can_dist********************/
 					temp = sum / a[j + m*j];
 					ij = j + m*k;
 					jj = j + m*j;
+					/***********can_dist********************/
 					for (i = j; i < m; i++)
 					{
 						a[ij] -= temp*a[jj];
 						ij += 1; /* [i+m*k] */
 						jj += 1; /* [i+m*j] */
 					}
+					/***********end of can_dist********************/
 					if ((pivot != 0) && (rdiag[k] != zero))
 					{
 						temp = a[j + m*k] / rdiag[k];
@@ -2122,6 +2315,11 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	/*
 	*     last card of subroutine qrfac.
 	*/
+	free(wa_try);
+	free(rdiag_try);
+	free(acnorm_try);
+	free(tid);
+	free(norm_paras);
 	return 0;
 }
 /************************qrsolv.c*************************/
@@ -2357,6 +2555,8 @@ L150:
 	/*
 	*     last card of subroutine qrsolv.
 	*/
+
+
 	return 0;
 }
 /************************enorm.c*************************/
