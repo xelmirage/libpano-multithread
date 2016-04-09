@@ -1837,9 +1837,9 @@ void* qrfac_trans_thread_full(void* arg)
 	int pivot = para->pivot;
 	int minmn = para->minmn;
 	int num = para->num;
-	int* rdiag = para->rdiag;
+	double* rdiag = para->rdiag;
 	double* wa = para->wa;
-	double* ipvt = para->ipvt;
+	int* ipvt = para->ipvt;
 	pthread_mutex_t* rdiag_mutex = para->rdiag_mutex;
 	pthread_mutex_t* a_mutex = para->a_mutex;
 	pthread_mutex_t* wa_mutex = para->wa_mutex;
@@ -1848,11 +1848,13 @@ void* qrfac_trans_thread_full(void* arg)
 	double* a = para->a;
 	double temp;
 	int jj,ij;
-	int sum;
+	double sum;
 	int*ids = para->ids;
 	struct mutex_unit* n_mutex = para->n_mutex;
 	BOOL isReady = FALSE;
 	BOOL need_escape = FALSE;
+	double* a_ij = (double*)malloc(m*sizeof(double));
+	double* a_jj = (double*)malloc(m*sizeof(double));
 	for (int i = 0; i < num;++i)
 	{
 		pthread_mutex_lock(&(n_mutex[ids[i]]._lock));
@@ -1925,10 +1927,10 @@ void* qrfac_trans_thread_full(void* arg)
 				{
 					n_mutex[ids[idj]].nedd_escape = TRUE;
 					rdiag[j] = -ajnorm;
-					pthread_mutex_unlock(a_mutex);
-					pthread_mutex_unlock(wa_mutex);
-					pthread_mutex_unlock(ipvt_mutex);
 					pthread_mutex_unlock(rdiag_mutex);
+					pthread_mutex_unlock(ipvt_mutex);
+					pthread_mutex_unlock(wa_mutex);
+					pthread_mutex_unlock(a_mutex);
 					continue;
 					//in fact, to jump to L101,add this to avoid hard jump
 				}
@@ -1950,16 +1952,17 @@ void* qrfac_trans_thread_full(void* arg)
 
 
 				}
-
+				n_mutex[ids[idj]].isReady = TRUE;
 
 				n_mutex[ids[idj]].nedd_escape = FALSE;
 
+				rdiag[j] = -ajnorm;
+				
 
-
-				pthread_mutex_unlock(a_mutex);
-				pthread_mutex_unlock(wa_mutex);
-				pthread_mutex_unlock(ipvt_mutex);
 				pthread_mutex_unlock(rdiag_mutex);
+				pthread_mutex_unlock(ipvt_mutex);
+				pthread_mutex_unlock(wa_mutex);
+				pthread_mutex_unlock(a_mutex);
 				pthread_mutex_unlock(&(n_mutex[ids[idj]]._lock));
 
 
@@ -1974,6 +1977,7 @@ void* qrfac_trans_thread_full(void* arg)
 					if(n_mutex[j].isReady)
 					{
 						isReady = TRUE;
+						need_escape = n_mutex[j].nedd_escape;
 
 					}
 					pthread_mutex_unlock(&n_mutex[j]._lock);
@@ -1981,7 +1985,7 @@ void* qrfac_trans_thread_full(void* arg)
 
 
 
-				if(n_mutex[ids[idj]].nedd_escape)
+				if (need_escape)
 				{
 					continue;
 				}
@@ -1991,28 +1995,51 @@ void* qrfac_trans_thread_full(void* arg)
 				//	for (k = jp1; k < n; k++)//should dist at this layer?
 				//	{
 					k = ids[idj];
+
+
 						sum = zero;
 						ij = j + m*k;
 						jj = j + m*j;
+						pthread_mutex_lock(a_mutex);
+						memcpy(a_jj, &a[jj], (m - j)*sizeof(double));
+						memcpy(a_ij, &a[ij], (m - j)*sizeof(double));
+						pthread_mutex_unlock(a_mutex);
 						/***********can_dist********************/
 						for (int i = j; i < m; ++i)
 						{
-							sum += a[jj] * a[ij];
+							sum += a_jj[i - j] * a_ij[i - j];
+							//sum += a[jj] * a[ij];
 							ij += 1; /* [i+m*k] */
 							jj += 1; /* [i+m*j] */
 						}
 						/***********end_of_can_dist********************/
-						temp = sum / a[j + m*j];
+						temp = sum / a_jj[0];
+						//temp = sum / a[j + m*j];
 						ij = j + m*k;
 						jj = j + m*j;
 						/***********can_dist********************/
 						for (int i = j; i < m; ++i)
 						{
-							a[ij] -= temp*a[jj];
+							a_ij[i - j] -= temp*a_jj[i - j];
+							//a[ij] -= temp*a[jj];
 							ij += 1; /* [i+m*k] */
 							jj += 1; /* [i+m*j] */
 						}
+
+						ij = j + m*k;
+						jj = j + m*j;
+
+						pthread_mutex_lock(a_mutex);
+						memcpy(&a[ij], a_ij,  (m - j)*sizeof(double));
+						pthread_mutex_unlock(a_mutex);
+
+
+
 						/***********end of can_dist********************/
+						pthread_mutex_lock(a_mutex);
+						pthread_mutex_lock(wa_mutex);
+						pthread_mutex_lock(ipvt_mutex);
+						pthread_mutex_lock(rdiag_mutex);
 						if ((pivot != 0) && (rdiag[k] != zero))
 						{
 							temp = a[j + m*k] / rdiag[k];
@@ -2025,6 +2052,11 @@ void* qrfac_trans_thread_full(void* arg)
 								wa[k] = rdiag[k];
 							}
 						}
+						pthread_mutex_unlock(rdiag_mutex);
+						
+						pthread_mutex_unlock(ipvt_mutex);
+						pthread_mutex_unlock(wa_mutex);
+						pthread_mutex_unlock(a_mutex);
 					//}
 				}
 			}
@@ -2045,7 +2077,8 @@ void* qrfac_trans_thread_full(void* arg)
 	}
 
 
-
+	free(a_ij);
+	free(a_jj);
 
 	pthread_exit(NULL);
 	return 0;
@@ -2385,10 +2418,10 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		trans_paras[i].a_mutex = &a_mutex;
 
 		trans_paras[i].current_j = &current_j;
-
-
-
-
+		trans_paras[i].rdiag = rdiag;
+		trans_paras[i].ipvt = ipvt;
+		trans_paras[i].n_mutex = n_mutex;
+		trans_paras[i].wa = wa;
 
 
 		pthread_create(&tid[i], NULL, qrfac_trans_thread_full, (void*)(&(trans_paras[i])));
@@ -2407,7 +2440,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		trans_paras[para_num].ids[para_position]=i;
 	}
 
-	for (int i = 0; i < _cores; ++i)
+	for (i = 0; i < _cores; ++i)
 	{
 		pthread_join(tid[i], NULL);
 	}
