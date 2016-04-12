@@ -906,7 +906,7 @@ L30:
 	printf("\n-------fjac--------\n");
 	pmat(m, n, fjac);
 	printf("\n-------ipvt--------\n");
-	pmat(1, n, ipvt);
+	//pmat(1, n, ipvt);
 	printf("\n-------wa1--------\n");
 	pmat(1, n, wa1);
 	printf("\n-------wa2--------\n");
@@ -2375,17 +2375,26 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 	struct qrfac_trans_para_full* trans_paras;
 	tid = (pthread_t*)malloc(_cores*sizeof(pthread_t));
-	trans_paras = (struct qrfac_trans_para_full*)malloc(_cores*sizeof(struct qrfac_trans_para_full*));
+	trans_paras = (struct qrfac_trans_para_full*)malloc(_cores*sizeof(struct qrfac_trans_para_full));
 	struct mutex_unit current_j;
 
 	current_j.value = 0;
 	current_j._lock = PTHREAD_MUTEX_INITIALIZER;
+#ifdef BUG
+	if(m==82)
+	{
+		printf("\nm==82\n");
+	}
+#endif
+
+
+
 
 	for (i = 0; i < _cores;++i)
 	{
 		if(remainder==0)
 		{
-			trans_paras[i].num = intvl;
+			trans_paras[i].num = intvl-1;
 			trans_paras[i].ids = (int*)malloc(trans_paras[i].num*sizeof(int));
 		}
 		else
@@ -2464,15 +2473,15 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 
 
-	free(tid);
-	free(trans_paras);
+	
 
 	for (i = 0; i < _cores; ++i)
 	{
 		free(trans_paras[i].ids);
 	}
 
-
+	free(tid);
+	free(trans_paras);
 
 
 
