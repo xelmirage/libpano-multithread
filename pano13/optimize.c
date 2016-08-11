@@ -141,8 +141,13 @@ void  RunLMOptimizer( OptInfo	*o)
 		if (istrat == 1) {
 			LM.ftol = 0.05;  // for distance-only strategy, bail out when convergence slows
 		}
-		if(LM.m>2000)
+#ifdef _DEBUG
+		if(LM.m>0)
+#else
+		if (LM.m>100)
+#endif
 		{
+			printf("\ndist\n");
 			lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,
 				LM.nprint,	&LM.info,	&LM.nfev,	LM.fjac,	LM.ldfjac,	LM.ipvt,
@@ -150,6 +155,7 @@ void  RunLMOptimizer( OptInfo	*o)
 		}
 		else
 		{
+			printf("\nnormal\n");
 			lmdif(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,
 				LM.nprint,	&LM.info,	&LM.nfev,	LM.fjac,	LM.ldfjac,	LM.ipvt,
