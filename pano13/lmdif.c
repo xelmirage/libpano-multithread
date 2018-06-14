@@ -20,11 +20,18 @@ extern lmfunc fcn;
 #if _MSC_VER > 1000
 #pragma warning(disable: 4100) // disable unreferenced formal parameter warning
 #endif
+#define _CPU_COUNT getCPUCount();
 
 // These globals are needed by MINPACK
+#ifdef WIN32
 
+#elif defined __APPLE__
+#else
+#include<stdbool.h>
+typedef bool BOOL ;
+#endif
 /* resolution of arithmetic */
-double MACHEP = 1.2e-16;  	
+double MACHEP = 1.2e-16;
 
 /* smallest nonzero number */ 
 double DWARF = 1.0e-38; 
@@ -1971,7 +1978,7 @@ void* qrfac_trans_thread_full(void* arg)
 			}
 			else if (para->ids[idj] > j)
 			{
-				while(!isReady)
+				while (!isReady)
 				{
 					pthread_mutex_lock(&n_mutex[j]._lock);
 					if(n_mutex[j].isReady)
@@ -2226,7 +2233,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		intvl = n / _cores + 1;
 	}
 #ifdef _DEBUG
-	printf("begin multithread processing %d cores\n", _cores);
+	printf("begin multithread processing %d cores, qrfac_stage_1\n", _cores);
 #endif
 	
 	acnorm_try = (double*)malloc(n*sizeof(double));
@@ -2315,7 +2322,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 
 #if BUG
-	printf("qrfac\n");
+	printf("qrfac_dist\n");
 #endif
 	/*
 	*     reduce a to r with householder transformations.
@@ -2343,10 +2350,10 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 	}*/
 #ifdef _DEBUG
-	printf("begin multithread processing %d cores\n", _cores);
+	printf("begin multithread processing %d cores, qrfac_stage_2\n", _cores);
 #endif
 	
-	_cores = 2;
+	//_cores = 2;
 	
 
 	if (_cores >= minmn)
@@ -2379,14 +2386,18 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	struct mutex_unit current_j;
 
 	current_j.value = 0;
-	current_j._lock = PTHREAD_MUTEX_INITIALIZER;
+    #ifdef WIN32
+        current_j._lock = PTHREAD_MUTEX_INITIALIZER;
+    #elif defined __APPLE__
+    #else
+        current_j._lock = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+    #endif
 #ifdef BUG
 	if(m==82)
 	{
 		printf("\nm==82\n");
 	}
 #endif
-
 
 
 
@@ -3174,6 +3185,7 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 #ifdef _DEBUG
 		printf("begin multithread processing %d cores\n",_cores);
 #endif
+        printf("begin multithread processing %d cores,fdjac\n",_cores);
 		tid=(pthread_t*)malloc(_cores*sizeof(pthread_t));
 		paras=(struct fdjac_para*)malloc(_cores*sizeof(struct fdjac_para));
 		begin=0;end=intvl;
@@ -3342,7 +3354,8 @@ int fdjac2(int m, int n, double x[], double fvec[], double fjac[],
 		if(h == zero)
 			h = eps;
 		x[j] = temp + h;
-		fcn(m,n,x,wa,iflag);
+		fcn(m, n, x, wa, iflag);
+        //fcnPano_dist(para->m, para->n, para->x, para->wa, para->iflag, para->g);
 		if( *iflag < 0)
 			return 0;
 		x[j] = temp;

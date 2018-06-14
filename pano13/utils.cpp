@@ -1,15 +1,23 @@
 #include "filter.h"
 #include <float.h>
 
+#ifdef WIN32
 
+#elif defined __APPLE__
+#else
+    
+#include<sys/time.h> 
+#include <unistd.h>
+
+#endif
 //---------for time stat------------
 
 #ifdef WIN32
-typedef DWORD os_TIME1;
+typedef DWORD os_TIME;
 #else
 typedef struct timeval os_TIME;
 #endif
-void os_GetTime1(os_TIME1* time)
+void os_GetTime1(os_TIME* time)
 {
 #ifdef WIN32
     *time = GetTickCount();
@@ -19,7 +27,7 @@ void os_GetTime1(os_TIME1* time)
 #endif
 }
 
-int os_TimeDiff1(os_TIME1* time1, os_TIME1* time2)
+int os_TimeDiff1(os_TIME* time1, os_TIME* time2)
 {
 #ifdef WIN32
     return *time1 - *time2;
@@ -29,7 +37,7 @@ int os_TimeDiff1(os_TIME1* time1, os_TIME1* time2)
 #endif
 }
 
-#define TIMETRACE(TEXT, CODE) { os_TIME1 t1,t2; os_GetTime1(&t1); CODE; \
+#define TIMETRACE(TEXT, CODE) { os_TIME t1,t2; os_GetTime1(&t1); CODE; \
         os_GetTime1(&t2); \
 		printf("%s took %f seconds.\n",TEXT,os_TimeDiff1(&t2,&t1)/1000.0); }
 
@@ -89,7 +97,7 @@ unsigned long long utils::getTotalMemory()
     }
 };
 #else
-unsigned long long utils::getTotalMemory()
+unsigned long long getTotalMemory()
 {
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
