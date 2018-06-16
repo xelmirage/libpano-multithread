@@ -11,7 +11,42 @@ void 			bracket( struct LMStruct	*LM );
 double 			sumSquared( double *a, int n );
 
 #define FUNCS_PER_CP getFcnPanoNperCP()  // number of functions per control point
+#ifdef WIN32
 
+#elif defined __APPLE__
+#else
+
+#include<sys/time.h> 
+#include <unistd.h>
+
+#endif
+int getCPUCount_o()
+{
+#ifdef WIN32
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return si.dwNumberOfProcessors;
+#elif defined(HW_NCPU) || defined(__APPLE__)
+	// BSD and OSX like system
+	int mib[2];
+	int numCPUs = 1;
+	size_t len = sizeof(numCPUs);
+
+	mib[0] = CTL_HW;
+	mib[1] = HW_NCPU;
+	sysctl(mib, 2, &numCPUs, &len, 0, 0);
+	return numCPUs;
+
+#elif defined(_SC_NPROCESSORS_ONLN)
+	// Linux and Solaris
+	long nProcessorsOnline = sysconf(_SC_NPROCESSORS_ONLN);
+	return nProcessorsOnline;
+#else
+	return 1;
+#endif
+}
+#define _CPU_COUNT getCPUCount_o()
+const int CPU_MULTIPLIER_o = 10;
 // Call Levenberg-Marquard optimizer
 #if 1
 void  RunLMOptimizer( OptInfo	*o)
@@ -141,7 +176,7 @@ void  RunLMOptimizer( OptInfo	*o)
 		if (istrat == 1) {
 			LM.ftol = 0.05;  // for distance-only strategy, bail out when convergence slows
 		}
-		if(LM.m>100)
+		if(LM.n>_CPU_COUNT*CPU_MULTIPLIER_o)
 		{
 			lmdif_dist(	LM.m,		LM.n,		LM.x,		LM.fvec,	LM.ftol,	LM.xtol,
 				LM.gtol,	LM.maxfev,	LM.epsfcn,	LM.diag,	LM.mode,	LM.factor,

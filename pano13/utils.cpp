@@ -1,6 +1,11 @@
 #include "filter.h"
 #include <float.h>
 
+#ifndef RXPANOUTIL
+
+#define RXPANOUTIL 1
+
+
 #ifdef WIN32
 
 #elif defined __APPLE__
@@ -1192,3 +1197,4 @@ int fcnPano_dist(int m, int n, double x[], double fvec[], int *iflag,AlignInfo	g
 		optFree(&(e.optInfo));
         return 0;
 }
+#endif // !1

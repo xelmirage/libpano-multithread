@@ -27,6 +27,7 @@ extern lmfunc fcn;
 
 #elif defined __APPLE__
 #else
+
 #include<stdbool.h>
 typedef bool BOOL ;
 #endif
@@ -941,7 +942,7 @@ L30:
 	free(Q);
 	free(R);
 #else
-	qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);
+	TIMETRACE("qrfac", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3));
 #endif
 	
 	/*
