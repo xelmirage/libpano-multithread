@@ -32,7 +32,7 @@ typedef bool BOOL ;
 #endif
 /* resolution of arithmetic */
 double MACHEP = 1.2e-16;
-
+const int CPU_MULTIPLIER = 10;
 /* smallest nonzero number */ 
 double DWARF = 1.0e-38; 
 
@@ -42,6 +42,7 @@ int qrfac_dist(int, int, double*, int, int, int*, int, double*, double*, double*
 int lmpar(int,double*,int,int*,double*,double*,double,double*,double*,double*,double*,double*);
 int qrsolv(int,double*,int,int*,double*,double*,double*,double*,double*);
 
+double enorm_mt(int n, double x[]);
 static double enorm(int n, double x[]);
 static double dmax1(double a, double b);
 static double dmin1(double a, double b);
@@ -882,7 +883,7 @@ L30:
 #ifdef _DEBUG
 	TIMETRACE("fdjac2",fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);) 
 	printf("\n-------fjac--------\n");
-	pmat(m, n,fjac);
+	//pmat(m, n,fjac);
 #else
 	fdjac2_dist(m,n,x,fvec,fjac,ldfjac,&iflag,epsfcn,wa4,*g);
 #endif
@@ -908,8 +909,19 @@ L30:
 	*	 compute the qr factorization of the jacobian.
 	*/
 #ifdef _DEBUG
-
-	TIMETRACE("qrfac", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
+	double *A, *Q, *R;
+	A = (double*)malloc(m*n*sizeof(double));
+	Q = (double*)malloc(m*n*sizeof(double));
+	R = (double*)malloc(m*n*sizeof(double));
+	memcpy(A, fjac, m*n*sizeof(double));
+	TIMETRACE("qrfac", qrfac(m, n, A, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
+	TIMETRACE("qrfac", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3));
+		
+	//pmat(m, n, A);
+	//printf("\n-------====--------\n");
+	//pmat(m, n, fjac);
+	pcom(m, n, A, fjac);
+	/*
 	printf("\n-------fjac--------\n");
 	pmat(m, n, fjac);
 	printf("\n-------ipvt--------\n");
@@ -917,7 +929,7 @@ L30:
 	printf("\n-------wa1--------\n");
 	pmat(1, n, wa1);
 	printf("\n-------wa2--------\n");
-	pmat(1, n, wa2);
+	pmat(1, n, wa2);*/
 	/*TIMETRACE("qrfac_dist", qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);;);
 	printf("\n-------ipvt--------\n");
 	pmat(1,n, ipvt);
@@ -925,7 +937,9 @@ L30:
 	pmat(1, n, wa1);
 	printf("\n-------wa2--------\n");
 	pmat(1, n, wa2);*/
-
+	free(A);
+	free(Q);
+	free(R);
 #else
 	qrfac_dist(m, n, fjac, ldfjac, 1, ipvt, n, wa1, wa2, wa3);
 #endif
@@ -1781,7 +1795,7 @@ void* qrfac_norms_thread(void* arg)
 		memcpy(temp, para->a + j*m, m*sizeof(double));
 		pthread_mutex_unlock(para->a_mutex);
 
-		norm = enorm(m, temp);
+		norm = enorm_mt(m, temp);
 
 
 		pthread_mutex_lock(para->mutex);
@@ -2221,10 +2235,10 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	int* ipvt_try = NULL;
 	_cores = getCPUCount();
 	//_cores = 1;
-	if (_cores >= n)
+	if (_cores*CPU_MULTIPLIER >= n)
 	{
-		_cores = n;
-		intvl = 1;
+		_cores = 1;
+		intvl = n;
 
 
 	}
@@ -2268,13 +2282,27 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 
 
-		ret = pthread_create(tid+i, NULL, qrfac_norms_thread, (void*)(norm_paras+i));
+		
 		begin += intvl;
 		end += intvl;
 		if (end > n)
 			end = n;
 
 	}
+
+
+	/*sequencely exe threads
+	for (i = 0; i < _cores; ++i)
+	{
+		qrfac_norms_thread((void*)(norm_paras + i));
+	}
+	*/
+	
+	for (i = 0; i < _cores; ++i)
+	{
+		ret = pthread_create(tid + i, NULL, qrfac_norms_thread, (void*)(norm_paras + i));
+	}
+	
 	for (i = 0; i < _cores;++i)
 	{
 		pthread_join(tid[i], NULL);
@@ -2329,26 +2357,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	*/
 
 	minmn = m <= n ? m : n;
-	/*_cores = getCPUCount();
-	if (_cores >=minmn)
-	{
-		_cores =minmn;
-		intvl = 1;
-
-
-	}
-	else
-	{
-		intvl = minmn / _cores + 1;
-	}
-	tid = (pthread_t*)malloc(_cores*sizeof(pthread_t));
-	paras = (struct qrfac_para*)malloc(_cores*sizeof(struct qrfac_para));
-	begin = 0; end = intvl;
-
-	for (i = 0; i < _cores; ++i)
-	{
-
-	}*/
+	/*
 #ifdef _DEBUG
 	printf("begin multithread processing %d cores, qrfac_stage_2\n", _cores);
 #endif
@@ -2405,7 +2414,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 	{
 		if(remainder==0)
 		{
-			trans_paras[i].num = intvl-1;
+			trans_paras[i].num = intvl;
 			trans_paras[i].ids = (int*)malloc(trans_paras[i].num*sizeof(int));
 		}
 		else
@@ -2444,7 +2453,7 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		trans_paras[i].wa = wa;
 
 
-		pthread_create(&tid[i], NULL, qrfac_trans_thread_full, (void*)(&(trans_paras[i])));
+		
 
 
 
@@ -2458,6 +2467,10 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 		para_position = i / _cores;//decide to insert to paras_trans[para_num].ids[para_posion];
 
 		trans_paras[para_num].ids[para_position]=i;
+	}
+	for (i = 0; i < _cores; ++i)
+	{
+		pthread_create(&tid[i], NULL, qrfac_trans_thread_full, (void*)(&(trans_paras[i])));
 	}
 
 	for (i = 0; i < _cores; ++i)
@@ -2493,123 +2506,123 @@ int qrfac_dist(int m, int n, double a[], int lda PT_UNUSED, int pivot,
 
 	free(tid);
 	free(trans_paras);
+	*/
 
 
+	for (j = 0; j<minmn; j++)//or should dist at this layer?
+	{
+		if (pivot == 0)
+		{
+			//do noithing, in fact, to jump to L41,add this to avoid hard jump
+		}
+		else
+		{
+			/*
+			*	 bring the column of largest norm into the pivot position.
+			*/
+			kmax = j;
+			for (k = j; k<n; k++)
+			{
+				if (rdiag[k] > rdiag[kmax])
+					kmax = k;
+			}
+			if (kmax == j)
 
-	//for (j = 0; j<minmn; j++)//or should dist at this layer?
-	//{
-	//	if (pivot == 0)
-	//	{
-	//		//do noithing, in fact, to jump to L41,add this to avoid hard jump
-	//	}
-	//	else
-	//	{
-	//		/*
-	//		*	 bring the column of largest norm into the pivot position.
-	//		*/
-	//		kmax = j;
-	//		for (k = j; k<n; k++)
-	//		{
-	//			if (rdiag[k] > rdiag[kmax])
-	//				kmax = k;
-	//		}
-	//		if (kmax == j)
-
-	//		{
-	//		
-	//		}
-	//		else
-	//		{
-	//			ij = m * j;
-	//			jj = m * kmax;
-	//			/***********can_dist********************/
-	//			for (i = 0; i < m; i++)
-	//			{
-	//				temp = a[ij]; /* [i+m*j] */
-	//				a[ij] = a[jj]; /* [i+m*kmax] */
-	//				a[jj] = temp;
-	//				ij += 1;
-	//				jj += 1;
-	//			}
-	//			/***********end of can_dist********************/
-	//			rdiag[kmax] = rdiag[j];
-	//			wa[kmax] = wa[j];
-	//			k = ipvt[j];
-	//			ipvt[j] = ipvt[kmax];
-	//			ipvt[kmax] = k;
-	//		}
-	//	}
-	//L41:
-	//	/*
-	//	*	 compute the householder transformation to reduce the
-	//	*	 j-th column of a to a multiple of the j-th unit vector.
-	//	*/
-	//	jj = j + m*j;
-	//	ajnorm = enorm(m - j, &a[jj]);
-	//	if (ajnorm == zero)
-	//	{
-	//		//in fact, to jump to L101,add this to avoid hard jump
-	//	}
-	//	else
-	//	{
-	//		if (a[jj] < zero)
-	//			ajnorm = -ajnorm;
-	//		ij = jj;
-	//		for (i = j; i < m; i++)
-	//		{
-	//			a[ij] /= ajnorm;
-	//			ij += 1; /* [i+m*j] */
-	//		}
-	//		a[jj] += one;
-	//		/*
-	//		*	 apply the transformation to the remaining columns
-	//		*	 and update the norms.
-	//		*/
-	//		jp1 = j + 1;
-	//		if (jp1 < n)
-	//		{
-	//			for (k = jp1; k < n; k++)//should dist at this layer?
-	//			{
-	//				sum = zero;
-	//				ij = j + m*k;
-	//				jj = j + m*j;
-	//				/***********can_dist********************/
-	//				for (i = j; i < m; i++)
-	//				{
-	//					sum += a[jj] * a[ij];
-	//					ij += 1; /* [i+m*k] */
-	//					jj += 1; /* [i+m*j] */
-	//				}
-	//				/***********end_of_can_dist********************/
-	//				temp = sum / a[j + m*j];
-	//				ij = j + m*k;
-	//				jj = j + m*j;
-	//				/***********can_dist********************/
-	//				for (i = j; i < m; i++)
-	//				{
-	//					a[ij] -= temp*a[jj];
-	//					ij += 1; /* [i+m*k] */
-	//					jj += 1; /* [i+m*j] */
-	//				}
-	//				/***********end of can_dist********************/
-	//				if ((pivot != 0) && (rdiag[k] != zero))
-	//				{
-	//					temp = a[j + m*k] / rdiag[k];
-	//					temp = dmax1(zero, one - temp*temp);
-	//					rdiag[k] *= sqrt(temp);
-	//					temp = rdiag[k] / wa[k];
-	//					if ((p05*temp*temp) <= MACHEP)
-	//					{
-	//						rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
-	//						wa[k] = rdiag[k];
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//L101:
-	//	rdiag[j] = -ajnorm;
-	//}
+			{
+			
+			}
+			else
+			{
+				ij = m * j;
+				jj = m * kmax;
+				/***********can_dist********************/
+				for (i = 0; i < m; i++)
+				{
+					temp = a[ij]; /* [i+m*j] */
+					a[ij] = a[jj]; /* [i+m*kmax] */
+					a[jj] = temp;
+					ij += 1;
+					jj += 1;
+				}
+				/***********end of can_dist********************/
+				rdiag[kmax] = rdiag[j];
+				wa[kmax] = wa[j];
+				k = ipvt[j];
+				ipvt[j] = ipvt[kmax];
+				ipvt[kmax] = k;
+			}
+		}
+	L41:
+		/*
+		*	 compute the householder transformation to reduce the
+		*	 j-th column of a to a multiple of the j-th unit vector.
+		*/
+		jj = j + m*j;
+		ajnorm = enorm(m - j, &a[jj]);
+		if (ajnorm == zero)
+		{
+			//in fact, to jump to L101,add this to avoid hard jump
+		}
+		else
+		{
+			if (a[jj] < zero)
+				ajnorm = -ajnorm;
+			ij = jj;
+			for (i = j; i < m; i++)
+			{
+				a[ij] /= ajnorm;
+				ij += 1; /* [i+m*j] */
+			}
+			a[jj] += one;
+			/*
+			*	 apply the transformation to the remaining columns
+			*	 and update the norms.
+			*/
+			jp1 = j + 1;
+			if (jp1 < n)
+			{
+				for (k = jp1; k < n; k++)//should dist at this layer?
+				{
+					sum = zero;
+					ij = j + m*k;
+					jj = j + m*j;
+					/***********can_dist********************/
+					for (i = j; i < m; i++)
+					{
+						sum += a[jj] * a[ij];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					/***********end_of_can_dist********************/
+					temp = sum / a[j + m*j];
+					ij = j + m*k;
+					jj = j + m*j;
+					/***********can_dist********************/
+					for (i = j; i < m; i++)
+					{
+						a[ij] -= temp*a[jj];
+						ij += 1; /* [i+m*k] */
+						jj += 1; /* [i+m*j] */
+					}
+					/***********end of can_dist********************/
+					if ((pivot != 0) && (rdiag[k] != zero))
+					{
+						temp = a[j + m*k] / rdiag[k];
+						temp = dmax1(zero, one - temp*temp);
+						rdiag[k] *= sqrt(temp);
+						temp = rdiag[k] / wa[k];
+						if ((p05*temp*temp) <= MACHEP)
+						{
+							rdiag[k] = enorm(m - j - 1, &a[jp1 + m*k]);
+							wa[k] = rdiag[k];
+						}
+					}
+				}
+			}
+		}
+	L101:
+		rdiag[j] = -ajnorm;
+	}
 	/*
 	*     last card of subroutine qrfac.
 	*/
@@ -2986,7 +2999,138 @@ static double enorm(int n, double x[])
 	*     last card of function enorm.
 	*/
 }
+double enorm_mt(int n, double x[])
+{
+	/*
+	*     **********
+	*
+	*     function enorm
+	*
+	*     given an n-vector x, this function calculates the
+	*     euclidean norm of x.
+	*
+	*     the euclidean norm is computed by accumulating the sum of
+	*     squares in three different sums. the sums of squares for the
+	*     small and large components are scaled so that no overflows
+	*     occur. non-destructive underflows are permitted. underflows
+	*     and overflows do not occur in the computation of the unscaled
+	*     sum of squares for the intermediate components.
+	*     the definitions of small, intermediate and large components
+	*     depend on two constants, rdwarf and rgiant. the main
+	*     restrictions on these constants are that rdwarf**2 not
+	*     underflow and rgiant**2 not overflow. the constants
+	*     given here are suitable for every known computer.
+	*
+	*     the function statement is
+	*
+	*	double precision function enorm(n,x)
+	*
+	*     where
+	*
+	*	n is a positive integer input variable.
+	*
+	*	x is an input array of length n.
+	*
+	*     subprograms called
+	*
+	*	fortran-supplied ... dabs,dsqrt
+	*
+	*     argonne national laboratory. minpack project. march 1980.
+	*     burton s. garbow, kenneth e. hillstrom, jorge j. more
+	*
+	*     **********
+	*/
+	int i;
+	double agiant,floatn,s1,s2,s3,xabs,x1max,x3max;
+	double ans, temp;
+	double rdwarf = 3.834e-20;
+	double rgiant = 1.304e19;
+	double zero = 0.0;
+	double one = 1.0;
+	double fabs(), sqrt();
 
+	s1 = zero;
+	s2 = zero;
+	s3 = zero;
+	x1max = zero;
+	x3max = zero;
+	floatn = n;
+	agiant = rgiant/floatn;
+
+	for( i=0; i<n; i++ )
+	{
+		xabs = fabs(x[i]);
+		if( (xabs > rdwarf) && (xabs < agiant) )
+		{
+			/*
+			*	    sum for intermediate components.
+			*/
+			s2 += xabs*xabs;
+			continue;
+		}
+
+		if(xabs > rdwarf)
+		{
+			/*
+			*	       sum for large components.
+			*/
+			if(xabs > x1max)
+			{
+				temp = x1max/xabs;
+				s1 = one + s1*temp*temp;
+				x1max = xabs;
+			}
+			else
+			{
+				temp = xabs/x1max;
+				s1 += temp*temp;
+			}
+			continue;
+		}
+		/*
+		*	       sum for small components.
+		*/
+		if(xabs > x3max)
+		{
+			temp = x3max/xabs;
+			s3 = one + s3*temp*temp;
+			x3max = xabs;
+		}
+		else	
+		{
+			if(xabs != zero)
+			{
+				temp = xabs/x3max;
+				s3 += temp*temp;
+			}
+		}
+	}
+	/*
+	*     calculation of norm.
+	*/
+	if(s1 != zero)
+	{
+		temp = s1 + (s2/x1max)/x1max;
+		ans = x1max*sqrt(temp);
+		return(ans);
+	}
+	if(s2 != zero)
+	{
+		if(s2 >= x3max)
+			temp = s2*(one+(x3max/s2)*(x3max*s3));
+		else
+			temp = x3max*((s2/x3max)+(x3max*s3));
+		ans = sqrt(temp);
+	}
+	else
+	{
+		ans = x3max*sqrt(s3);
+	}
+	return(ans);
+	/*
+	*     last card of function enorm.
+	*/
+}
 /************************fdjac2.c*************************/
 
 #define BUG 0
@@ -3171,10 +3315,10 @@ int fdjac2_dist(int m, int n, double x[], double fvec[], double fjac[],
 
 		
 		_cores=getCPUCount();
-		if(_cores>=n)
+		if(_cores*CPU_MULTIPLIER >=n)
 		{
-			_cores=n;
-			intvl=1;
+			_cores=1;
+			intvl=n;
 
 
 		}
